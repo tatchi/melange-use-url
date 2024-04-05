@@ -27,17 +27,77 @@ module Root = {
   let make = () => <div> "Root"->React.string </div>;
 };
 
-module User = {
+module UserAction = {
+  type action =
+    | New
+    | Edit;
+  let action_of_string = s =>
+    switch (Js.String.toLocaleLowerCase(s)) {
+    | "new" => Some(New)
+    | "edit" => Some(Edit)
+    | _ => None
+    };
+
+  let string_of_action =
+    fun
+    | New => "new"
+    | Edit => "edit";
+
   [@react.component]
-  let make = (~userId) =>
-    <div> {("User id = " ++ string_of_int(userId))->React.string} </div>;
+  let make = (~action) =>
+    <div> {string_of_action(action)->React.string} </div>;
+};
+
+module User = {
+  let routes = {
+    let user_action = () => {
+      let action =
+        Routes.custom(
+          ~serialize=UserAction.string_of_action,
+          ~parse=UserAction.action_of_string,
+          ~label=":action",
+        );
+      let path = () => Routes.(action /? nil);
+      Routes.(path() @--> (action => <UserAction action />));
+    };
+
+    Routes.one_of([user_action()]);
+  };
+
+  [@react.component]
+  let make = (~userId, ~rest, ~parentPrefix) => {
+    let prefix = Routes.Parts.prefix(rest);
+    let rest_url = Routes.Parts.wildcard_match(rest);
+    <div>
+      {("User id = " ++ string_of_int(userId))->React.string}
+      <ul>
+        <li>
+          <Link href={parentPrefix ++ prefix ++ "/new"}>
+            "New"->React.string
+          </Link>
+        </li>
+        <li>
+          <Link href={parentPrefix ++ prefix ++ "/edit"}>
+            "Edit"->React.string
+          </Link>
+        </li>
+      </ul>
+      {switch (Routes.match'(routes, ~target=rest_url)) {
+       | FullMatch(el)
+       | MatchWithTrailingSlash(el) => el
+       | NoMatch => React.null
+       }}
+    </div>;
+  };
 };
 
 module Users = {
-  let routes = {
+  let routes = parentPrefix => {
     let user_route = () => {
-      let path = () => Routes.(int /? nil);
-      Routes.(path() @--> (userId => <User userId />));
+      let path = () => Routes.(int /? wildcard);
+      Routes.(
+        path() @--> ((userId, rest) => <User userId rest parentPrefix />)
+      );
     };
 
     Routes.one_of([user_route()]);
@@ -63,7 +123,7 @@ module Users = {
          }
          ->React.array}
       </ul>
-      {switch (Routes.match'(routes, ~target=rest_url)) {
+      {switch (Routes.match'(routes(prefix), ~target=rest_url)) {
        | FullMatch(el)
        | MatchWithTrailingSlash(el) => el
        | NoMatch => React.null

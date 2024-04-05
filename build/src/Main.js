@@ -41,35 +41,112 @@ var Root = {
   make: Main$Root
 };
 
-function Main$User(Props) {
-  var userId = Props.userId;
+function action_of_string(s) {
+  var match = s.toLocaleLowerCase();
+  switch (match) {
+    case "edit" :
+        return /* Edit */1;
+    case "new" :
+        return /* New */0;
+    default:
+      return ;
+  }
+}
+
+function string_of_action(param) {
+  if (param) {
+    return "edit";
+  } else {
+    return "new";
+  }
+}
+
+function Main$UserAction(Props) {
+  var action = Props.action;
   return JsxRuntime.jsx("div", {
-              children: "User id = " + String(userId)
+              children: action ? "edit" : "new"
             });
 }
 
-var User = {
-  make: Main$User
+var UserAction = {
+  action_of_string: action_of_string,
+  string_of_action: string_of_action,
+  make: Main$UserAction
 };
 
-function user_route(param) {
-  return Routes.$at$neg$neg$great(Routes.$slash$question(Routes.$$int, Routes.nil), (function (userId) {
-                return JsxRuntime.jsx(Main$User, {
-                            userId: userId
+function user_action(param) {
+  var action = function (param) {
+    return Routes.custom(string_of_action, action_of_string, ":action", param);
+  };
+  return Routes.$at$neg$neg$great(Routes.$slash$question(action, Routes.nil), (function (action) {
+                return JsxRuntime.jsx(Main$UserAction, {
+                            action: action
                           });
               }));
 }
 
 var routes = Routes.one_of({
-      hd: user_route(undefined),
+      hd: user_action(undefined),
       tl: /* [] */0
     });
+
+function Main$User(Props) {
+  var userId = Props.userId;
+  var rest = Props.rest;
+  var parentPrefix = Props.parentPrefix;
+  var prefix = Routes.Parts.prefix(rest);
+  var rest_url = Routes.Parts.wildcard_match(rest);
+  var match = Routes.match$p(routes, rest_url);
+  return JsxRuntime.jsxs("div", {
+              children: [
+                "User id = " + String(userId),
+                JsxRuntime.jsxs("ul", {
+                      children: [
+                        JsxRuntime.jsx("li", {
+                              children: JsxRuntime.jsx(Main$Link, {
+                                    href: parentPrefix + (prefix + "/new"),
+                                    children: "New"
+                                  })
+                            }),
+                        JsxRuntime.jsx("li", {
+                              children: JsxRuntime.jsx(Main$Link, {
+                                    href: parentPrefix + (prefix + "/edit"),
+                                    children: "Edit"
+                                  })
+                            })
+                      ]
+                    }),
+                typeof match === "number" ? null : match._0
+              ]
+            });
+}
+
+var User = {
+  routes: routes,
+  make: Main$User
+};
+
+function routes$1(parentPrefix) {
+  var user_route = function (param) {
+    return Routes.$at$neg$neg$great(Routes.$slash$question(Routes.$$int, Routes.wildcard), (function (userId, rest) {
+                  return JsxRuntime.jsx(Main$User, {
+                              userId: userId,
+                              rest: rest,
+                              parentPrefix: parentPrefix
+                            });
+                }));
+  };
+  return Routes.one_of({
+              hd: user_route(undefined),
+              tl: /* [] */0
+            });
+}
 
 function Main$Users(Props) {
   var rest = Props.rest;
   var prefix = Routes.Parts.prefix(rest);
   var rest_url = Routes.Parts.wildcard_match(rest);
-  var match = Routes.match$p(routes, rest_url);
+  var match = Routes.match$p(routes$1(prefix), rest_url);
   return JsxRuntime.jsxs("div", {
               children: [
                 "Users",
@@ -94,7 +171,7 @@ function Main$Users(Props) {
 }
 
 var Users = {
-  routes: routes,
+  routes: routes$1,
   make: Main$Users
 };
 
@@ -112,7 +189,7 @@ function users_route(param) {
               }));
 }
 
-var routes$1 = Routes.one_of({
+var routes$2 = Routes.one_of({
       hd: root_route(undefined),
       tl: {
         hd: users_route(undefined),
@@ -126,7 +203,7 @@ function Main$App(Props) {
   var pathname = path ? Stdlib__List.fold_left((function (acc, v) {
             return acc + ("/" + v);
           }), "", path) : "/";
-  var match = Routes.match$p(routes$1, pathname);
+  var match = Routes.match$p(routes$2, pathname);
   return JsxRuntime.jsxs("main", {
               children: [
                 JsxRuntime.jsx("nav", {
@@ -155,7 +232,7 @@ function Main$App(Props) {
 }
 
 var App = {
-  routes: routes$1,
+  routes: routes$2,
   make: Main$App
 };
 
@@ -175,6 +252,7 @@ export {
   Client$1 as Client,
   Link ,
   Root ,
+  UserAction ,
   User ,
   Users ,
   App ,
