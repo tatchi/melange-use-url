@@ -1,3 +1,5 @@
+[@warning "-26"];
+
 [%%mel.raw {|import "./index.css"|}];
 
 module Client = {
@@ -132,19 +134,46 @@ module Users = {
   };
 };
 
-module App = {
-  let routes = {
-    let root_route = () => {
-      let path = () => Routes.(nil);
-      Routes.(path() @--> <Root />);
-    };
-    let users_route = () => {
-      let path = () => Routes.(s("users") /? wildcard);
-      Routes.(path() @--> (rest => <Users rest />));
-    };
+module Route = {
+  type t =
+    | Route({
+        path: Routes.path('a, React.element),
+        render: 'a,
+      })
+      : t;
 
-    Routes.one_of([root_route(), users_route()]);
+  let make = (~path, ~render) => Route({path, render});
+  // [@react.component]
+  // let make = (~path as _: Routes.path('a, React.element), ~render as _: 'a) => React.null;
+};
+
+module My_Routes = {
+  [@react.component]
+  let make = (~routes: list(Route.t), ~fallback=React.null) => {
+    let url = ReasonReactRouter.useUrl();
+
+    let pathname =
+      switch (url.path) {
+      | [] => "/"
+      | path => path |> List.fold_left((acc, v) => acc ++ "/" ++ v, "")
+      };
+
+    let routes =
+      routes
+      |> List.map((Route.Route({path, render})) =>
+           Routes.(path @--> render)
+         )
+      |> Routes.one_of;
+
+    switch (Routes.match'(routes, ~target=pathname)) {
+    | FullMatch(el)
+    | MatchWithTrailingSlash(el) => el
+    | NoMatch => fallback
+    };
   };
+};
+
+module App = {
   [@react.component]
   let make = () => {
     let url = ReasonReactRouter.useUrl();
@@ -161,11 +190,15 @@ module App = {
           <li> <Link href="/users"> "Users"->React.string </Link> </li>
         </ul>
       </nav>
-      {switch (Routes.match'(routes, ~target=pathname)) {
-       | FullMatch(el)
-       | MatchWithTrailingSlash(el) => el
-       | NoMatch => <div> "Not found"->React.string </div>
-       }}
+      <My_Routes
+        fallback={<div> "No match"->React.string </div>}
+        routes=[
+          Route.make(~path=Routes.nil, ~render=<Root />),
+          Route.make(~path=Routes.(s("users") /? wildcard), ~render=rest =>
+            <Users rest />
+          ),
+        ]
+      />
     </main>;
   };
 };

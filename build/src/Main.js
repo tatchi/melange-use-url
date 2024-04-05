@@ -175,35 +175,49 @@ var Users = {
   make: Main$Users
 };
 
-function root_route(param) {
-  return Routes.$at$neg$neg$great(Routes.nil, JsxRuntime.jsx(Main$Root, {}));
+function make(path, render) {
+  return /* Route */{
+          path: path,
+          render: render
+        };
 }
 
-function users_route(param) {
-  return Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
-                    return Routes.s("users", param);
-                  }), Routes.wildcard), (function (rest) {
-                return JsxRuntime.jsx(Main$Users, {
-                            rest: rest
-                          });
-              }));
-}
+var Route = {
+  make: make
+};
 
-var routes$2 = Routes.one_of({
-      hd: root_route(undefined),
-      tl: {
-        hd: users_route(undefined),
-        tl: /* [] */0
-      }
-    });
-
-function Main$App(Props) {
+function Main$My_Routes(Props) {
+  var routes = Props.routes;
+  var fallbackOpt = Props.fallback;
+  var fallback = fallbackOpt !== undefined ? Caml_option.valFromOption(fallbackOpt) : null;
   var url = ReasonReactRouter.useUrl(undefined, undefined);
   var path = url.path;
   var pathname = path ? Stdlib__List.fold_left((function (acc, v) {
             return acc + ("/" + v);
           }), "", path) : "/";
-  var match = Routes.match$p(routes$2, pathname);
+  var routes$1 = Routes.one_of(Stdlib__List.map((function (param) {
+              return Routes.$at$neg$neg$great(param.path, param.render);
+            }), routes));
+  var match = Routes.match$p(routes$1, pathname);
+  if (typeof match === "number") {
+    return fallback;
+  } else {
+    return match._0;
+  }
+}
+
+var My_Routes = {
+  make: Main$My_Routes
+};
+
+function Main$App(Props) {
+  var url = ReasonReactRouter.useUrl(undefined, undefined);
+  var path = url.path;
+  if (path) {
+    Stdlib__List.fold_left((function (acc, v) {
+            return acc + ("/" + v);
+          }), "", path);
+  }
   return JsxRuntime.jsxs("main", {
               children: [
                 JsxRuntime.jsx("nav", {
@@ -224,15 +238,35 @@ function Main$App(Props) {
                             ]
                           })
                     }),
-                typeof match === "number" ? JsxRuntime.jsx("div", {
-                        children: "Not found"
-                      }) : match._0
+                JsxRuntime.jsx(Main$My_Routes, {
+                      routes: {
+                        hd: /* Route */{
+                          path: Routes.nil,
+                          render: JsxRuntime.jsx(Main$Root, {})
+                        },
+                        tl: {
+                          hd: /* Route */{
+                            path: Routes.$slash$question((function (param) {
+                                    return Routes.s("users", param);
+                                  }), Routes.wildcard),
+                            render: (function (rest) {
+                                return JsxRuntime.jsx(Main$Users, {
+                                            rest: rest
+                                          });
+                              })
+                          },
+                          tl: /* [] */0
+                        }
+                      },
+                      fallback: JsxRuntime.jsx("div", {
+                            children: "No match"
+                          })
+                    })
               ]
             });
 }
 
 var App = {
-  routes: routes$2,
   make: Main$App
 };
 
@@ -255,6 +289,8 @@ export {
   UserAction ,
   User ,
   Users ,
+  Route ,
+  My_Routes ,
   App ,
   node$1 as node,
 }
