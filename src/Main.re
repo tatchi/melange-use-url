@@ -16,7 +16,7 @@ module Link = {
       href
       onClick={event => {
         React.Event.Mouse.preventDefault(event);
-        Melange_router.push(href);
+        ReasonReactRouter.push(href);
       }}>
       children
     </a>;
@@ -87,8 +87,13 @@ module App = {
   };
   [@react.component]
   let make = () => {
-    let url = Melange_router.useUrl();
+    let url = ReasonReactRouter.useUrl();
 
+    let pathname =
+      switch (url.path) {
+      | [] => "/"
+      | path => path |> List.fold_left((acc, v) => acc ++ "/" ++ v, "")
+      };
     <main>
       <nav>
         <ul>
@@ -96,7 +101,7 @@ module App = {
           <li> <Link href="/users"> "Users"->React.string </Link> </li>
         </ul>
       </nav>
-      {switch (Routes.match'(routes, ~target=url.pathname)) {
+      {switch (Routes.match'(routes, ~target=pathname)) {
        | FullMatch(el)
        | MatchWithTrailingSlash(el) => el
        | NoMatch => <div> "Not found"->React.string </div>
