@@ -179,7 +179,7 @@ val map : ('a -> 'b) -> 'a route -> 'b route
 
 type 'a match_result =
   | FullMatch of 'a
-  | MatchWithTrailingSlash of 'a
+  | PartialMatch of 'a * Parts.t
   | NoMatch
 
 (** [match'] accepts a router and the target url to match. *)

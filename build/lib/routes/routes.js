@@ -507,63 +507,59 @@ function parse_route(path, handler, params) {
     var t = _t;
     if (typeof t === "number") {
       if (t === /* End */0) {
-        if (s) {
-          if (s.hd === "" && !s.tl) {
-            return {
-                    TAG: /* MatchWithTrailingSlash */1,
-                    _0: f
-                  };
-          } else {
-            return /* NoMatch */0;
-          }
+        if (s && !(s.hd === "" && !s.tl)) {
+          return /* NoMatch */0;
         } else {
           return {
                   TAG: /* FullMatch */0,
                   _0: f
                 };
         }
-      } else {
-        return {
-                TAG: /* FullMatch */0,
-                _0: Curry._1(f, {
-                      prefix: Stdlib__List.rev(seen),
-                      matched: s
-                    })
-              };
       }
-    }
-    if (t.TAG === /* Match */0) {
+      var parts_prefix = Stdlib__List.rev(seen);
+      var parts = {
+        prefix: parts_prefix,
+        matched: s
+      };
+      return {
+              TAG: /* PartialMatch */1,
+              _0: Curry._1(f, parts),
+              _1: parts
+            };
+    } else {
+      if (t.TAG === /* Match */0) {
+        if (!s) {
+          return /* NoMatch */0;
+        }
+        var x$p = s.hd;
+        if (t._0 !== x$p) {
+          return /* NoMatch */0;
+        }
+        _s = s.tl;
+        _seen = {
+          hd: x$p,
+          tl: seen
+        };
+        _t = t._1;
+        continue ;
+      }
       if (!s) {
         return /* NoMatch */0;
       }
-      var x$p = s.hd;
-      if (t._0 !== x$p) {
+      var x = s.hd;
+      var x$p$1 = Curry._1(t._0.from_, x);
+      if (x$p$1 === undefined) {
         return /* NoMatch */0;
       }
       _s = s.tl;
       _seen = {
-        hd: x$p,
+        hd: x,
         tl: seen
       };
+      _f = Curry._1(f, Caml_option.valFromOption(x$p$1));
       _t = t._1;
       continue ;
     }
-    if (!s) {
-      return /* NoMatch */0;
-    }
-    var x = s.hd;
-    var x$p$1 = Curry._1(t._0.from_, x);
-    if (x$p$1 === undefined) {
-      return /* NoMatch */0;
-    }
-    _s = s.tl;
-    _seen = {
-      hd: x,
-      tl: seen
-    };
-    _f = Curry._1(f, Caml_option.valFromOption(x$p$1));
-    _t = t._1;
-    continue ;
   };
 }
 
@@ -611,8 +607,9 @@ function match$p(router, target) {
               };
       } else {
         return {
-                TAG: /* MatchWithTrailingSlash */1,
-                _0: Curry._1(f, r._0)
+                TAG: /* PartialMatch */1,
+                _0: Curry._1(f, r._0),
+                _1: r._1
               };
       }
     }

@@ -14,21 +14,99 @@ import "./index.css"
 
 var Client$1 = {};
 
+function make(path, render) {
+  return /* Route */{
+          path: path,
+          render: render
+        };
+}
+
+var Route = {
+  make: make
+};
+
+var routeContext = React.createContext(undefined);
+
+var make$1 = routeContext.Provider;
+
+var Provider = {
+  make: make$1
+};
+
+var RouteContext = {
+  routeContext: routeContext,
+  Provider: Provider
+};
+
+function Main$RouteProvider(Props) {
+  var children = Props.children;
+  var url = ReasonReactRouter.useUrl(undefined, undefined);
+  var path = url.path;
+  var pathname = path ? Stdlib__List.fold_left((function (acc, v) {
+            return acc + ("/" + v);
+          }), "", path) : "/";
+  return JsxRuntime.jsx(make$1, {
+              value: {
+                pathname: pathname,
+                parent: ""
+              },
+              children: children
+            });
+}
+
+var RouteProvider = {
+  make: Main$RouteProvider
+};
+
 function Main$Link(Props) {
   var href = Props.href;
   var children = Props.children;
+  var match = React.useContext(routeContext);
+  var href$1 = match.parent + ("/" + href);
   return JsxRuntime.jsx("a", {
               children: children,
-              href: href,
+              href: href$1,
               onClick: (function ($$event) {
                   $$event.preventDefault();
-                  ReasonReactRouter.push(href);
+                  ReasonReactRouter.push(href$1);
                 })
             });
 }
 
 var Link = {
   make: Main$Link
+};
+
+function Main$My_Routes(Props) {
+  var routes = Props.routes;
+  var fallbackOpt = Props.fallback;
+  var fallback = fallbackOpt !== undefined ? Caml_option.valFromOption(fallbackOpt) : null;
+  var match = React.useContext(routeContext);
+  var routes$1 = Routes.one_of(Stdlib__List.map((function (param) {
+              return Routes.$at$neg$neg$great(param.path, param.render);
+            }), routes));
+  var el = Routes.match$p(routes$1, match.pathname);
+  if (typeof el === "number") {
+    return fallback;
+  }
+  if (el.TAG === /* FullMatch */0) {
+    return el._0;
+  }
+  var parts = el._1;
+  var value_pathname = Routes.Parts.wildcard_match(parts);
+  var value_parent = match.parent + Routes.Parts.prefix(parts);
+  var value = {
+    pathname: value_pathname,
+    parent: value_parent
+  };
+  return JsxRuntime.jsx(make$1, {
+              value: value,
+              children: el._0
+            });
+}
+
+var My_Routes = {
+  make: Main$My_Routes
 };
 
 function Main$Root(Props) {
@@ -63,8 +141,11 @@ function string_of_action(param) {
 
 function Main$UserAction(Props) {
   var action = Props.action;
+  var userId = Props.userId;
   return JsxRuntime.jsx("div", {
-              children: action ? "edit" : "new"
+              children: (
+                action ? "edit" : "new"
+              ) + (" " + String(userId))
             });
 }
 
@@ -74,29 +155,12 @@ var UserAction = {
   make: Main$UserAction
 };
 
-function user_action(param) {
-  var action = function (param) {
-    return Routes.custom(string_of_action, action_of_string, ":action", param);
-  };
-  return Routes.$at$neg$neg$great(Routes.$slash$question(action, Routes.nil), (function (action) {
-                return JsxRuntime.jsx(Main$UserAction, {
-                            action: action
-                          });
-              }));
+function action(param) {
+  return Routes.custom(string_of_action, action_of_string, ":action", param);
 }
-
-var routes = Routes.one_of({
-      hd: user_action(undefined),
-      tl: /* [] */0
-    });
 
 function Main$User(Props) {
   var userId = Props.userId;
-  var rest = Props.rest;
-  var parentPrefix = Props.parentPrefix;
-  var prefix = Routes.Parts.prefix(rest);
-  var rest_url = Routes.Parts.wildcard_match(rest);
-  var match = Routes.match$p(routes, rest_url);
   return JsxRuntime.jsxs("div", {
               children: [
                 "User id = " + String(userId),
@@ -104,49 +168,42 @@ function Main$User(Props) {
                       children: [
                         JsxRuntime.jsx("li", {
                               children: JsxRuntime.jsx(Main$Link, {
-                                    href: parentPrefix + (prefix + "/new"),
+                                    href: "new",
                                     children: "New"
                                   })
                             }),
                         JsxRuntime.jsx("li", {
                               children: JsxRuntime.jsx(Main$Link, {
-                                    href: parentPrefix + (prefix + "/edit"),
+                                    href: "edit",
                                     children: "Edit"
                                   })
                             })
                       ]
                     }),
-                typeof match === "number" ? null : match._0
+                JsxRuntime.jsx(Main$My_Routes, {
+                      routes: {
+                        hd: /* Route */{
+                          path: Routes.$slash$question(action, Routes.nil),
+                          render: (function (action) {
+                              return JsxRuntime.jsx(Main$UserAction, {
+                                          action: action,
+                                          userId: userId
+                                        });
+                            })
+                        },
+                        tl: /* [] */0
+                      }
+                    })
               ]
             });
 }
 
 var User = {
-  routes: routes,
+  action: action,
   make: Main$User
 };
 
-function routes$1(parentPrefix) {
-  var user_route = function (param) {
-    return Routes.$at$neg$neg$great(Routes.$slash$question(Routes.$$int, Routes.wildcard), (function (userId, rest) {
-                  return JsxRuntime.jsx(Main$User, {
-                              userId: userId,
-                              rest: rest,
-                              parentPrefix: parentPrefix
-                            });
-                }));
-  };
-  return Routes.one_of({
-              hd: user_route(undefined),
-              tl: /* [] */0
-            });
-}
-
 function Main$Users(Props) {
-  var rest = Props.rest;
-  var prefix = Routes.Parts.prefix(rest);
-  var rest_url = Routes.Parts.wildcard_match(rest);
-  var match = Routes.match$p(routes$1(prefix), rest_url);
   return JsxRuntime.jsxs("div", {
               children: [
                 "Users",
@@ -155,7 +212,7 @@ function Main$Users(Props) {
                               var userIdStr = String(userId);
                               return JsxRuntime.jsx("li", {
                                           children: JsxRuntime.jsx(Main$Link, {
-                                                href: prefix + ("/" + userIdStr),
+                                                href: userIdStr,
                                                 children: "user " + userIdStr
                                               })
                                         }, userIdStr);
@@ -165,59 +222,28 @@ function Main$Users(Props) {
                             3
                           ])
                     }),
-                typeof match === "number" ? null : match._0
+                JsxRuntime.jsx(Main$My_Routes, {
+                      routes: {
+                        hd: /* Route */{
+                          path: Routes.$slash$question(Routes.$$int, Routes.wildcard),
+                          render: (function (userId, param) {
+                              return JsxRuntime.jsx(Main$User, {
+                                          userId: userId
+                                        });
+                            })
+                        },
+                        tl: /* [] */0
+                      }
+                    })
               ]
             });
 }
 
 var Users = {
-  routes: routes$1,
   make: Main$Users
 };
 
-function make(path, render) {
-  return /* Route */{
-          path: path,
-          render: render
-        };
-}
-
-var Route = {
-  make: make
-};
-
-function Main$My_Routes(Props) {
-  var routes = Props.routes;
-  var fallbackOpt = Props.fallback;
-  var fallback = fallbackOpt !== undefined ? Caml_option.valFromOption(fallbackOpt) : null;
-  var url = ReasonReactRouter.useUrl(undefined, undefined);
-  var path = url.path;
-  var pathname = path ? Stdlib__List.fold_left((function (acc, v) {
-            return acc + ("/" + v);
-          }), "", path) : "/";
-  var routes$1 = Routes.one_of(Stdlib__List.map((function (param) {
-              return Routes.$at$neg$neg$great(param.path, param.render);
-            }), routes));
-  var match = Routes.match$p(routes$1, pathname);
-  if (typeof match === "number") {
-    return fallback;
-  } else {
-    return match._0;
-  }
-}
-
-var My_Routes = {
-  make: Main$My_Routes
-};
-
 function Main$App(Props) {
-  var url = ReasonReactRouter.useUrl(undefined, undefined);
-  var path = url.path;
-  if (path) {
-    Stdlib__List.fold_left((function (acc, v) {
-            return acc + ("/" + v);
-          }), "", path);
-  }
   return JsxRuntime.jsxs("main", {
               children: [
                 JsxRuntime.jsx("nav", {
@@ -225,13 +251,13 @@ function Main$App(Props) {
                             children: [
                               JsxRuntime.jsx("li", {
                                     children: JsxRuntime.jsx(Main$Link, {
-                                          href: "/",
+                                          href: "",
                                           children: "Root"
                                         })
                                   }),
                               JsxRuntime.jsx("li", {
                                     children: JsxRuntime.jsx(Main$Link, {
-                                          href: "/users",
+                                          href: "users",
                                           children: "Users"
                                         })
                                   })
@@ -249,10 +275,8 @@ function Main$App(Props) {
                             path: Routes.$slash$question((function (param) {
                                     return Routes.s("users", param);
                                   }), Routes.wildcard),
-                            render: (function (rest) {
-                                return JsxRuntime.jsx(Main$Users, {
-                                            rest: rest
-                                          });
+                            render: (function (param) {
+                                return JsxRuntime.jsx(Main$Users, {});
                               })
                           },
                           tl: /* [] */0
@@ -276,7 +300,9 @@ if (node == null) {
   console.error("Failed to start React: couldn't find the #root element");
 } else {
   Client.createRoot(node).render(JsxRuntime.jsx(React.StrictMode, {
-            children: JsxRuntime.jsx(Main$App, {})
+            children: JsxRuntime.jsx(Main$RouteProvider, {
+                  children: JsxRuntime.jsx(Main$App, {})
+                })
           }));
 }
 
@@ -284,13 +310,15 @@ var node$1 = (node == null) ? undefined : Caml_option.some(node);
 
 export {
   Client$1 as Client,
+  Route ,
+  RouteContext ,
+  RouteProvider ,
   Link ,
+  My_Routes ,
   Root ,
   UserAction ,
   User ,
   Users ,
-  Route ,
-  My_Routes ,
   App ,
   node$1 as node,
 }
