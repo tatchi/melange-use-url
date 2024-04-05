@@ -1,0 +1,7 @@
+(library
+ (name react_app)
+ (modes melange)
+ (melange.runtime_deps index.css)
+ (libraries reason-react melange.belt melange.dom melange_router)
+ (preprocess
+  (pps melange.ppx reason-react-ppx)))

@@ -1,0 +1,6 @@
+(library
+ (name melange_router)
+ (modes melange)
+ (libraries reason-react routes melange.belt melange-webapi melange.dom)
+ (preprocess
+  (pps melange.ppx reason-react-ppx)))
