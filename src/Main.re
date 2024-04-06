@@ -19,9 +19,10 @@ module Route = {
       })
       : t;
 
-  let make = (~path, ~render) => Route({path, render});
-  // [@react.component]
-  // let make = (~path as _: Routes.path('a, React.element), ~render as _: 'a) => React.null;
+  let create = (~path, ~render) => Route({path, render});
+
+  [@react.component]
+  let make = (~path as _: Routes.path('a, React.element), ~render as _: 'a) => React.null;
 };
 
 module RouteContext = {
@@ -72,6 +73,72 @@ module Link = {
       }}>
       children
     </a>;
+  };
+};
+
+module Routes2 = {
+  [@mel.module "react"]
+  external isValidElement: React.element => bool = "isValidElement";
+
+  module Element = {
+    type t = React.element;
+
+    type elementType;
+
+    module Fragment = {
+      [@mel.module "react"] external type_: elementType = "Fragment";
+    };
+
+    [@mel.get] external type_: React.element => elementType = "type";
+
+    let isFragment: React.element => bool =
+      element => type_(element) === Fragment.type_;
+
+    [@mel.get] [@mel.scope "props"]
+    external path: React.element => Routes.path('a, React.element) = "path";
+    [@mel.get] [@mel.scope "props"]
+    external render: React.element => 'a = "render";
+  };
+  [@react.component]
+  let make = (~children, ~fallback=React.null) => {
+    let {RouteContext.pathname, parent} =
+      React.useContext(RouteContext.routeContext);
+    let routes: Js.Array.t(Route.t) = [||];
+
+    React.Children.forEach(children, element =>
+      if (isValidElement(element)) {
+        if (Element.type_(element) !== Obj.magic(Route.make)) {
+          Js.Console.error("Routes can only have <Route> children");
+        } else {
+          let path = Element.path(element);
+          let render = Element.render(element);
+          let route = Route.create(~path, ~render);
+
+          let _ = Js.Array.push(routes, ~value=route);
+          ();
+        };
+      }
+    );
+    let routes =
+      routes
+      |> Array.to_list
+      |> List.map((Route.Route({path, render})) =>
+           Routes.(path @--> render)
+         )
+      |> Routes.one_of;
+
+    let elementToRender =
+      switch (Routes.match'(routes, ~target=pathname)) {
+      | FullMatch(el) => el
+      | PartialMatch(el, parts) =>
+        let value = {
+          RouteContext.pathname: Routes.Parts.wildcard_match(parts),
+          parent: parent ++ Routes.Parts.prefix(parts),
+        };
+        <RouteContext.Provider value> el </RouteContext.Provider>;
+      | NoMatch => fallback
+      };
+    elementToRender;
   };
 };
 
@@ -148,13 +215,12 @@ module User = {
         <li> <Link href="new"> "New"->React.string </Link> </li>
         <li> <Link href="edit"> "Edit"->React.string </Link> </li>
       </ul>
-      <My_Routes
-        routes=[
-          Route.make(~path=Routes.(action /? nil), ~render=action =>
-            <UserAction action userId />
-          ),
-        ]
-      />
+      <Routes2>
+        <Route
+          path=Routes.(action /? nil)
+          render={action => <UserAction action userId />}
+        />
+      </Routes2>
     </div>;
   };
 };
@@ -177,13 +243,12 @@ module Users = {
          }
          ->React.array}
       </ul>
-      <My_Routes
-        routes=[
-          Route.make(~path=Routes.(int /? wildcard), ~render=(userId, _) =>
-            <User userId />
-          ),
-        ]
-      />
+      <Routes2>
+        <Route
+          path=Routes.(int /? wildcard)
+          render={(userId, _) => <User userId />}
+        />
+      </Routes2>
     </div>;
   };
 };
@@ -198,15 +263,10 @@ module App = {
           <li> <Link href="users"> "Users"->React.string </Link> </li>
         </ul>
       </nav>
-      <My_Routes
-        fallback={<div> "No match"->React.string </div>}
-        routes=[
-          Route.make(~path=Routes.nil, ~render=<Root />),
-          Route.make(~path=Routes.(s("users") /? wildcard), ~render=_ =>
-            <Users />
-          ),
-        ]
-      />
+      <Routes2 fallback={<div> "No match"->React.string </div>}>
+        <Route path=Routes.nil render={<Root />} />
+        <Route path=Routes.(s("users") /? wildcard) render={_ => <Users />} />
+      </Routes2>
     </main>;
   };
 };
