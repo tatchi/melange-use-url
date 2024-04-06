@@ -86,7 +86,7 @@ module Users = {
       <Router.Routes>
         <Router.Route
           path=Routes.(int /? wildcard)
-          render={(userId, _) => <User userId />}
+          render={(userId, _: Routes.Parts.t) => <User userId />}
         />
       </Router.Routes>
     </div>;
@@ -107,7 +107,7 @@ module App = {
         <Router.Route path=Routes.nil render={<Root />} />
         <Router.Route
           path=Routes.(s("users") /? wildcard)
-          render={_ => <Users />}
+          render={(_: Routes.Parts.t) => <Users />}
         />
       </Router.Routes>
     </main>;
