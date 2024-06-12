@@ -2,7 +2,7 @@
 
 import * as Caml_option from "melange.js/caml_option.js";
 import * as ReasonReactRouter from "reason-react/ReasonReactRouter.js";
-import * as Routes from "../lib/routes/routes.js";
+import * as Routes from "../lib/routes/browser/routes.js";
 import * as Stdlib__Array from "melange/array.js";
 import * as Stdlib__List from "melange/list.js";
 import * as React from "react";

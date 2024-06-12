@@ -1,0 +1,7 @@
+(library
+ (modes melange)
+ (wrapped false)
+ (name routes_browser))
+
+(copy_files#
+ (files ../*.ml*))
