@@ -1,0 +1,6 @@
+[submodule "vendor/ppx_deriving"]
+	path = vendor/ppx_deriving
+	url = git@github.com:tatchi/ppx_deriving.git
+[submodule "vendor/ppx_deriving_router"]
+	path = vendor/ppx_deriving_router
+	url = git@github.com:tatchi/ppx_deriving_router.git
