@@ -1,0 +1,13 @@
+(executable
+ (name server)
+ (modules server)
+ (libraries dream lwt lwt.unix routes ppx_deriving_router.runtime_lib)
+ (preprocess
+  (pps ppx_deriving_router.dream lwt_ppx)))
+
+(executable
+ (name server2)
+ (modules server2)
+ (libraries dream lwt routes ppx_deriving_router.runtime_lib)
+ (preprocess
+  (pps ppx_deriving_router.dream)))
