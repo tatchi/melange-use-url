@@ -1,6 +1,6 @@
 [@@@warning "-34-37-32"]
 
-type 'v route = Route : ('a, 'v) Routes.path * 'a * ('v -> 'w) -> 'w route
+type 'v route = Route : ('a, 'v) Routes.path * 'a -> 'v route
 
 let home () = Routes.(s "home" / str /? nil)
 let project () = Routes.(s "project" / int /? nil)
@@ -16,17 +16,12 @@ type my_routes =
   | Route_project of { nb : int }
 (* type packed = Packed : my_routes * response encode -> packed *)
 
-let r1 =
-  Route
-    (home (), (fun s (_req : Dream.request) -> Route_home { name = s }), Fun.id)
+let r1 = Route (home (), fun s (_req : Dream.request) -> Route_home { name = s })
 
 let r2 =
-  Route
-    ( project (),
-      (fun i (_req : Dream.request) -> Route_project { nb = i }),
-      Fun.id )
+  Route (project (), fun i (_req : Dream.request) -> Route_project { nb = i })
 
-let to_route (Route (path, a, f)) = Routes.(map f (route path a))
+let to_route (Route (path, a)) = Routes.(route path a)
 let router = [ r1; r2 ] |> List.map to_route |> Routes.one_of
 
 type handler = my_routes -> Dream.request -> string
