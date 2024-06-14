@@ -1,13 +1,34 @@
 (executable
  (name server)
  (modules server)
- (libraries dream lwt lwt.unix routes ppx_deriving_router.runtime_lib)
+ (libraries
+  dream
+  lwt
+  lwt.unix
+  routes
+  ppx_deriving_router.runtime_lib
+  ppx_deriving_json.native_runtime
+  yojson)
  (preprocess
-  (pps ppx_deriving_router.dream lwt_ppx)))
+  (pps ppx_deriving_router.dream lwt_ppx ppx_deriving_json.native)))
 
 (executable
  (name server2)
  (modules server2)
- (libraries dream lwt routes ppx_deriving_router.runtime_lib)
+ (libraries
+  dream
+  lwt
+  lwt.unix
+  routes
+  ppx_deriving_router.runtime_lib
+  ppx_deriving_json.native_runtime
+  yojson)
  (preprocess
-  (pps ppx_deriving_router.dream)))
+  (pps ppx_deriving_router.dream lwt_ppx ppx_deriving_json.native)))
+
+(executable
+ (name playground)
+ (modules playground)
+ (libraries dream lwt lwt.unix routes yojson)
+ (preprocess
+  (pps lwt_ppx ppx_deriving_json.native)))
