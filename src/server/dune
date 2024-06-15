@@ -32,3 +32,11 @@
  (libraries dream lwt lwt.unix routes yojson)
  (preprocess
   (pps lwt_ppx ppx_deriving_json.native)))
+
+(library
+ (name playground_react)
+ (modules playground_react)
+ (modes melange)
+ (libraries reason-react melange.belt melange.dom routes_browser)
+ (preprocess
+  (pps melange.ppx reason-react-ppx)))
