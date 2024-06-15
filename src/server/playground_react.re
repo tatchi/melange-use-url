@@ -25,8 +25,8 @@ let handle = route =>
 
 let href = route => {
   switch (route) {
-  | Home({name}) => "/home/" ++ name
-  | Project({id}) => "/project/" ++ string_of_int(id)
+  | Home({name}) => Routes.sprintf(home(), name)
+  | Project({id}) => Routes.sprintf(project(), id)
   };
 };
 
