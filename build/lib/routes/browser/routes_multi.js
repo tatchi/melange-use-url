@@ -3,9 +3,11 @@
 import * as Caml_option from "melange.js/caml_option.js";
 import * as Curry from "melange.js/curry.js";
 import * as Stdlib from "melange/stdlib.js";
+import * as Stdlib__Format from "melange/format.js";
+import * as Stdlib__Int32 from "melange/int32.js";
+import * as Stdlib__Int64 from "melange/int64.js";
 import * as Stdlib__List from "melange/list.js";
 import * as Stdlib__Map from "melange/map.js";
-import * as Stdlib__Printf from "melange/printf.js";
 import * as Stdlib__String from "melange/string.js";
 
 function split_path(target) {
@@ -35,12 +37,6 @@ function split_path(target) {
   }
 }
 
-var Util = {
-  split_path: split_path
-};
-
-var Key = {};
-
 var KeyMap = Stdlib__Map.Make({
       compare: Stdlib__String.compare
     });
@@ -56,138 +52,6 @@ var empty = {
 function feed_params(t, params) {
   var _t = t;
   var _params = params;
-  while(true) {
-    var params$1 = _params;
-    var t$1 = _t;
-    var rs = t$1.parsers;
-    var exit = 0;
-    if (rs) {
-      exit = 1;
-    } else {
-      if (!params$1) {
-        return /* [] */0;
-      }
-      exit = 1;
-    }
-    if (exit === 1) {
-      if (!params$1) {
-        return rs;
-      }
-      var x = params$1.hd;
-      var capture = t$1.capture;
-      var exit$1 = 0;
-      if (x === "") {
-        if (!params$1.tl) {
-          return rs;
-        }
-        exit$1 = 2;
-      } else {
-        exit$1 = 2;
-      }
-      if (exit$1 === 2) {
-        var xs = params$1.tl;
-        Curry._1(Stdlib__Printf.printf(/* Format */{
-                  _0: {
-                    TAG: /* String_literal */11,
-                    _0: "find_opt x = ",
-                    _1: {
-                      TAG: /* String */2,
-                      _0: /* No_padding */0,
-                      _1: {
-                        TAG: /* Char_literal */12,
-                        _0: /* '\n' */10,
-                        _1: /* End_of_format */0
-                      }
-                    }
-                  },
-                  _1: "find_opt x = %s\n"
-                }), x);
-        var m$p = Curry._2(KeyMap.find_opt, x, t$1.children);
-        if (m$p !== undefined) {
-          Curry._1(Stdlib__Printf.printf(/* Format */{
-                    _0: {
-                      TAG: /* Char_literal */12,
-                      _0: /* '[' */91,
-                      _1: {
-                        TAG: /* String */2,
-                        _0: /* No_padding */0,
-                        _1: {
-                          TAG: /* String_literal */11,
-                          _0: "] FOUND!\n",
-                          _1: /* End_of_format */0
-                        }
-                      }
-                    },
-                    _1: "[%s] FOUND!\n"
-                  }), x);
-          _params = xs;
-          _t = m$p;
-          continue ;
-        }
-        Curry._1(Stdlib__Printf.printf(/* Format */{
-                  _0: {
-                    TAG: /* Char_literal */12,
-                    _0: /* '[' */91,
-                    _1: {
-                      TAG: /* String */2,
-                      _0: /* No_padding */0,
-                      _1: {
-                        TAG: /* String_literal */11,
-                        _0: "] not found, let's see capture\n",
-                        _1: /* End_of_format */0
-                      }
-                    }
-                  },
-                  _1: "[%s] not found, let's see capture\n"
-                }), x);
-        if (capture !== undefined) {
-          Curry._1(Stdlib__Printf.printf(/* Format */{
-                    _0: {
-                      TAG: /* Char_literal */12,
-                      _0: /* '[' */91,
-                      _1: {
-                        TAG: /* String */2,
-                        _0: /* No_padding */0,
-                        _1: {
-                          TAG: /* String_literal */11,
-                          _0: "] capture  found\n",
-                          _1: /* End_of_format */0
-                        }
-                      }
-                    },
-                    _1: "[%s] capture  found\n"
-                  }), x);
-          _params = xs;
-          _t = capture[1];
-          continue ;
-        }
-        Curry._1(Stdlib__Printf.printf(/* Format */{
-                  _0: {
-                    TAG: /* Char_literal */12,
-                    _0: /* '[' */91,
-                    _1: {
-                      TAG: /* String */2,
-                      _0: /* No_padding */0,
-                      _1: {
-                        TAG: /* String_literal */11,
-                        _0: "] capture not found\n",
-                        _1: /* End_of_format */0
-                      }
-                    }
-                  },
-                  _1: "[%s] capture not found\n"
-                }), x);
-        return /* [] */0;
-      }
-      
-    }
-    
-  };
-}
-
-function feed_params_2(t, params) {
-  var _t = t;
-  var _params = params;
   var _acc = /* [] */0;
   while(true) {
     var acc = _acc;
@@ -200,104 +64,21 @@ function feed_params_2(t, params) {
       return acc;
     }
     var xs = params$1.tl;
-    var x = params$1.hd;
     var capture = t$1.capture;
-    Curry._1(Stdlib__Printf.printf(/* Format */{
-              _0: {
-                TAG: /* String_literal */11,
-                _0: "find_opt x = ",
-                _1: {
-                  TAG: /* String */2,
-                  _0: /* No_padding */0,
-                  _1: {
-                    TAG: /* Char_literal */12,
-                    _0: /* '\n' */10,
-                    _1: /* End_of_format */0
-                  }
-                }
-              },
-              _1: "find_opt x = %s\n"
-            }), x);
-    var m$p = Curry._2(KeyMap.find_opt, x, t$1.children);
+    var m$p = Curry._2(KeyMap.find_opt, params$1.hd, t$1.children);
     if (m$p !== undefined) {
-      var p = m$p.parsers;
-      Curry._1(Stdlib__Printf.printf(/* Format */{
-                _0: {
-                  TAG: /* Char_literal */12,
-                  _0: /* '[' */91,
-                  _1: {
-                    TAG: /* String */2,
-                    _0: /* No_padding */0,
-                    _1: {
-                      TAG: /* String_literal */11,
-                      _0: "] FOUND!\n",
-                      _1: /* End_of_format */0
-                    }
-                  }
-                },
-                _1: "[%s] FOUND!\n"
-              }), x);
-      _acc = Stdlib.$at(p, acc);
+      _acc = Stdlib.$at(m$p.parsers, acc);
       _params = xs;
       _t = m$p;
       continue ;
     }
-    Curry._1(Stdlib__Printf.printf(/* Format */{
-              _0: {
-                TAG: /* Char_literal */12,
-                _0: /* '[' */91,
-                _1: {
-                  TAG: /* String */2,
-                  _0: /* No_padding */0,
-                  _1: {
-                    TAG: /* String_literal */11,
-                    _0: "] not found, let's see capture\n",
-                    _1: /* End_of_format */0
-                  }
-                }
-              },
-              _1: "[%s] not found, let's see capture\n"
-            }), x);
-    if (capture !== undefined) {
-      var t$p = capture[1];
-      Curry._1(Stdlib__Printf.printf(/* Format */{
-                _0: {
-                  TAG: /* Char_literal */12,
-                  _0: /* '[' */91,
-                  _1: {
-                    TAG: /* String */2,
-                    _0: /* No_padding */0,
-                    _1: {
-                      TAG: /* String_literal */11,
-                      _0: "] capture  found\n",
-                      _1: /* End_of_format */0
-                    }
-                  }
-                },
-                _1: "[%s] capture  found\n"
-              }), x);
-      _acc = Stdlib.$at(t$p.parsers, acc);
-      _params = xs;
-      _t = t$p;
-      continue ;
+    if (capture === undefined) {
+      return /* [] */0;
     }
-    Curry._1(Stdlib__Printf.printf(/* Format */{
-              _0: {
-                TAG: /* Char_literal */12,
-                _0: /* '[' */91,
-                _1: {
-                  TAG: /* String */2,
-                  _0: /* No_padding */0,
-                  _1: {
-                    TAG: /* String_literal */11,
-                    _0: "] capture not found\n",
-                    _1: /* End_of_format */0
-                  }
-                }
-              },
-              _1: "[%s] capture not found\n"
-            }), x);
-    return /* [] */0;
+    _acc = Stdlib.$at(capture.parsers, acc);
+    _params = xs;
+    _t = capture;
+    continue ;
   };
 }
 
@@ -317,7 +98,7 @@ function add(k, v, t) {
     var children = t.children;
     var r = k.tl;
     var x = k.hd;
-    if (x.TAG === /* Match */0) {
+    if (x) {
       var w = x._0;
       var v$1 = Curry._2(KeyMap.find_opt, w, children);
       var t$p = v$1 !== undefined ? v$1 : empty;
@@ -328,69 +109,116 @@ function add(k, v, t) {
               capture: t.capture
             };
     }
-    var t$p$1 = capture !== undefined ? capture[1] : empty;
+    var t$p$1 = capture !== undefined ? capture : empty;
     var t$p$p$1 = aux(r, t$p$1);
     return {
             parsers: t.parsers,
             children: t.children,
-            capture: [
-              x._0,
-              t$p$p$1
-            ]
+            capture: t$p$p$1
           };
   };
   return aux(k, t);
 }
 
-function $$int(name, r) {
+function union(t1, t2) {
+  var parsers = Stdlib.$at(t1.parsers, t2.parsers);
+  var children = Curry._3(KeyMap.merge, (function (param, l, r) {
+          if (l !== undefined) {
+            if (r !== undefined) {
+              return union(l, r);
+            } else {
+              return l;
+            }
+          }
+          if (r !== undefined) {
+            return r;
+          }
+          throw {
+                MEL_EXN_ID: "Assert_failure",
+                _1: [
+                  "routes_multi.ml",
+                  76,
+                  26
+                ],
+                Error: new Error()
+              };
+        }), t1.children, t2.children);
+  var match = t1.capture;
+  var match$1 = t2.capture;
+  var capture = match !== undefined ? (
+      match$1 !== undefined ? union(match, match$1) : match
+    ) : (
+      match$1 !== undefined ? match$1 : undefined
+    );
+  return {
+          parsers: parsers,
+          children: children,
+          capture: capture
+        };
+}
+
+function of_parts(x) {
+  return {
+          prefix: /* [] */0,
+          matched: split_path(x)
+        };
+}
+
+function wildcard_match(t) {
+  return Stdlib__String.concat("/", {
+              hd: "",
+              tl: t.matched
+            });
+}
+
+function prefix(t) {
+  return Stdlib__String.concat("/", {
+              hd: "",
+              tl: t.prefix
+            });
+}
+
+function pattern(to_, from_, label, r) {
   return {
           TAG: /* Conv */1,
           _0: {
-            to_: (function (prim) {
-                return String(prim);
-              }),
-            from_: Stdlib.int_of_string_opt,
-            label: Curry._1(Stdlib__Printf.sprintf(/* Format */{
-                      _0: {
-                        TAG: /* String */2,
-                        _0: /* No_padding */0,
-                        _1: {
-                          TAG: /* String_literal */11,
-                          _0: ":int",
-                          _1: /* End_of_format */0
-                        }
-                      },
-                      _1: "%s:int"
-                    }), name)
+            to_: to_,
+            from_: from_,
+            label: label
           },
           _1: r
         };
 }
 
-function str(name, r) {
+function custom(to_, from_, label, r) {
   return {
           TAG: /* Conv */1,
           _0: {
-            to_: (function (prim) {
-                return prim;
-              }),
-            from_: (function (x) {
-                return x;
-              }),
-            label: Curry._1(Stdlib__Printf.sprintf(/* Format */{
-                      _0: {
-                        TAG: /* String */2,
-                        _0: /* No_padding */0,
-                        _1: {
-                          TAG: /* String_literal */11,
-                          _0: ":string",
-                          _1: /* End_of_format */0
-                        }
-                      },
-                      _1: "%s:string"
-                    }), name)
+            to_: to_,
+            from_: from_,
+            label: label
           },
           _1: r
+        };
+}
+
+function $at$neg$neg$great(r, handler) {
+  return /* Route */{
+          _0: r,
+          _1: handler,
+          _2: (function (x) {
+              return x;
+            })
+        };
+}
+
+function route(r, handler) {
+  return /* Route */{
+          _0: r,
+          _1: handler,
+          _2: (function (x) {
+              return x;
+            })
         };
 }
 
@@ -402,10 +230,69 @@ function s(w, r) {
         };
 }
 
-function route(r, handler) {
-  return /* Route */{
-          _0: r,
-          _1: handler
+function $$int(r) {
+  return {
+          TAG: /* Conv */1,
+          _0: {
+            to_: (function (prim) {
+                return String(prim);
+              }),
+            from_: Stdlib.int_of_string_opt,
+            label: ":int"
+          },
+          _1: r
+        };
+}
+
+function int64(r) {
+  return {
+          TAG: /* Conv */1,
+          _0: {
+            to_: Stdlib__Int64.to_string,
+            from_: Stdlib__Int64.of_string_opt,
+            label: ":int64"
+          },
+          _1: r
+        };
+}
+
+function int32(r) {
+  return {
+          TAG: /* Conv */1,
+          _0: {
+            to_: Stdlib__Int32.to_string,
+            from_: Stdlib__Int32.of_string_opt,
+            label: ":int32"
+          },
+          _1: r
+        };
+}
+
+function str(r) {
+  return {
+          TAG: /* Conv */1,
+          _0: {
+            to_: (function (x) {
+                return x;
+              }),
+            from_: (function (x) {
+                return x;
+              }),
+            label: ":string"
+          },
+          _1: r
+        };
+}
+
+function bool(r) {
+  return {
+          TAG: /* Conv */1,
+          _0: {
+            to_: Stdlib.string_of_bool,
+            from_: Stdlib.bool_of_string_opt,
+            label: ":bool"
+          },
+          _1: r
         };
 }
 
@@ -422,128 +309,74 @@ function route_pattern(param) {
     return /* [] */0;
   } else if (param.TAG === /* Match */0) {
     return {
-            hd: {
-              TAG: /* Match */0,
+            hd: /* Match */{
               _0: param._0
             },
             tl: route_pattern(param._1)
           };
   } else {
     return {
-            hd: {
-              TAG: /* Capture */1,
-              _0: param._0.label
-            },
+            hd: /* Capture */0,
             tl: route_pattern(param._1)
           };
   }
 }
 
-function one_of(routes) {
-  var routes$1 = Stdlib__List.rev(routes);
-  return Stdlib__List.fold_left((function (routes, route) {
-                var patterns = route_pattern(route._0);
-                return add(patterns, route, routes);
-              }), empty, routes$1);
-}
-
-function add_route(route, router) {
-  var patterns = route_pattern(route._0);
-  return add(patterns, route, router);
-}
-
-function parse_route(path, handler, target) {
-  var _path = path;
-  var _handler = handler;
-  var _target = target;
-  while(true) {
-    var target$1 = _target;
-    var handler$1 = _handler;
-    var path$1 = _path;
-    if (typeof path$1 === "number") {
+function pp_path$p(path) {
+  var aux = function (param) {
+    if (typeof param === "number") {
+      return /* [] */0;
+    } else if (param.TAG === /* Match */0) {
       return {
-              hd: handler$1,
-              tl: /* [] */0
+              hd: param._0,
+              tl: aux(param._1)
+            };
+    } else {
+      return {
+              hd: param._0.label,
+              tl: aux(param._1)
             };
     }
-    if (path$1.TAG === /* Match */0) {
-      if (!target$1) {
-        return /* [] */0;
-      }
-      if (target$1.hd !== path$1._0) {
-        return /* [] */0;
-      }
-      _target = target$1.tl;
-      _path = path$1._1;
-      continue ;
-    }
-    if (!target$1) {
-      return /* [] */0;
-    }
-    var v = Curry._1(path$1._0.from_, target$1.hd);
-    if (v === undefined) {
-      return /* [] */0;
-    }
-    _target = target$1.tl;
-    _handler = Curry._1(handler$1, Caml_option.valFromOption(v));
-    _path = path$1._1;
-    continue ;
   };
+  return aux(path);
 }
 
-function match_routes(target, _routes, _acc) {
-  while(true) {
-    var acc = _acc;
-    var routes = _routes;
-    if (!routes) {
-      return acc;
-    }
-    var rs = routes.tl;
-    var match = routes.hd;
-    var r = parse_route(match._0, match._1, target);
-    if (r) {
-      Stdlib__Printf.printf(/* Format */{
+function pp_target(fmt, t) {
+  Curry._1(Stdlib__Format.fprintf(fmt)(/* Format */{
             _0: {
-              TAG: /* String_literal */11,
-              _0: "[match_routes]: Got a match\n",
+              TAG: /* String */2,
+              _0: /* No_padding */0,
               _1: /* End_of_format */0
             },
-            _1: "[match_routes]: Got a match\n"
-          });
-      _acc = Stdlib.$at(r, acc);
-      _routes = rs;
-      continue ;
-    }
-    Stdlib__Printf.printf(/* Format */{
-          _0: {
-            TAG: /* String_literal */11,
-            _0: "[match_routes]: No match\n",
-            _1: /* End_of_format */0
-          },
-          _1: "[match_routes]: No match\n"
-        });
-    _routes = rs;
-    continue ;
-  };
+            _1: "%s"
+          }), "/" + Stdlib__String.concat("/", pp_path$p(t)));
 }
 
-function match$p(router, target) {
-  var target$1 = split_path(target);
-  var routes = feed_params_2(router, target$1);
-  var res = match_routes(target$1, routes, /* [] */0);
-  if (res) {
-    return /* FullMatch */{
-            _0: res
-          };
-  } else {
-    return /* NoMatch */0;
-  }
+function string_of_path(t) {
+  return Curry._2(Stdlib__Format.asprintf(/* Format */{
+                  _0: {
+                    TAG: /* Alpha */15,
+                    _0: /* End_of_format */0
+                  },
+                  _1: "%a"
+                }), pp_target, t);
 }
 
-function sprintf(t) {
-  var k = function (x) {
-    return x;
-  };
+function pp_route(fmt, param) {
+  pp_target(fmt, param._0);
+}
+
+function string_of_route(r) {
+  return Curry._2(Stdlib__Format.asprintf(/* Format */{
+                  _0: {
+                    TAG: /* Alpha */15,
+                    _0: /* End_of_format */0
+                  },
+                  _1: "%a"
+                }), pp_route, r);
+}
+
+function ksprintf(k, t) {
   var k$1 = function (x) {
     return Curry._1(k, "/" + Stdlib__String.concat("/", x));
   };
@@ -584,37 +417,147 @@ function sprintf(t) {
   return aux(k$1, t);
 }
 
-var PatternTrie = {
-  Key: Key,
-  KeyMap: KeyMap,
-  empty: empty,
-  add: add,
-  feed_params: feed_params,
-  feed_params_2: feed_params_2
-};
+function sprintf(t) {
+  return ksprintf((function (x) {
+                return x;
+              }), t);
+}
 
-var empty_router = empty;
+function parse_route(path, handler, params) {
+  var _t = path;
+  var _f = handler;
+  var _s = params;
+  while(true) {
+    var s = _s;
+    var f = _f;
+    var t = _t;
+    if (typeof t === "number") {
+      return {
+              hd: f,
+              tl: /* [] */0
+            };
+    }
+    if (t.TAG === /* Match */0) {
+      if (!s) {
+        return /* [] */0;
+      }
+      if (t._0 !== s.hd) {
+        return /* [] */0;
+      }
+      _s = s.tl;
+      _t = t._1;
+      continue ;
+    }
+    if (!s) {
+      return /* [] */0;
+    }
+    var x$p = Curry._1(t._0.from_, s.hd);
+    if (x$p === undefined) {
+      return /* [] */0;
+    }
+    _s = s.tl;
+    _f = Curry._1(f, Caml_option.valFromOption(x$p));
+    _t = t._1;
+    continue ;
+  };
+}
+
+function one_of(routes) {
+  var routes$1 = Stdlib__List.rev(routes);
+  return Stdlib__List.fold_left((function (routes, route) {
+                var patterns = route_pattern(route._0);
+                return add(patterns, route, routes);
+              }), empty, routes$1);
+}
+
+function add_route(route, routes) {
+  var patterns = route_pattern(route._0);
+  return add(patterns, route, routes);
+}
+
+function map(f, param) {
+  var g = param._2;
+  return /* Route */{
+          _0: param._0,
+          _1: param._1,
+          _2: (function (x) {
+              return Curry._1(f, Curry._1(g, x));
+            })
+        };
+}
+
+function match_routes(target, _routes, _acc) {
+  while(true) {
+    var acc = _acc;
+    var routes = _routes;
+    if (!routes) {
+      return acc;
+    }
+    var rs = routes.tl;
+    var match = routes.hd;
+    var r = parse_route(match._0, match._1, target);
+    if (r) {
+      var r$1 = Stdlib__List.map(match._2, r);
+      _acc = Stdlib.$at(r$1, acc);
+      _routes = rs;
+      continue ;
+    }
+    _routes = rs;
+    continue ;
+  };
+}
+
+function match$p(router, target) {
+  var target$1 = split_path(target);
+  var routes = feed_params(router, target$1);
+  var res = match_routes(target$1, routes, /* [] */0);
+  if (res) {
+    return /* FullMatch */{
+            _0: res
+          };
+  } else {
+    return /* NoMatch */0;
+  }
+}
+
+function $slash$tilde(m, path) {
+  return Curry._1(m, path);
+}
+
+var Parts = {
+  prefix: prefix,
+  wildcard_match: wildcard_match,
+  of_parts: of_parts
+};
 
 var nil = /* End */0;
 
-var $at$neg$neg$great = route;
-
 export {
-  Util ,
-  PatternTrie ,
-  empty_router ,
+  Parts ,
   $$int ,
+  int32 ,
+  int64 ,
   str ,
+  bool ,
   s ,
   nil ,
+  pattern ,
+  custom ,
   $slash ,
+  $slash$tilde ,
   $slash$question ,
   $at$neg$neg$great ,
   route ,
   one_of ,
-  route_pattern ,
-  add_route ,
+  map ,
   match$p ,
+  ksprintf ,
   sprintf ,
+  pp_target ,
+  pp_route ,
+  string_of_path ,
+  string_of_route ,
+  add_route ,
+  union ,
 }
 /* KeyMap Not a pure module */

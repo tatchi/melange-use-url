@@ -3,12 +3,11 @@ module Routes = Routes_multi;
 type route('v) =
   | Route(Routes.path('a, 'v), 'a): route('v);
 
-let home = () => Routes.(s("home") / str("name") /? nil);
+let home = () => Routes.(s("home") / str /? nil);
 
-let project = () => Routes.(s("project") / int("id") /? nil);
+let project = () => Routes.(s("project") / int /? nil);
 
-let projectCat = () =>
-  Routes.(s("project") / int("id") / str("cat") /? nil);
+let projectCat = () => Routes.(s("project") / int / str /? nil);
 
 type my_routes =
   | Home({name: string})

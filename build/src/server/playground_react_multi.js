@@ -13,9 +13,7 @@ function home(param) {
   return Routes_multi.$slash$question((function (param) {
                 return Routes_multi.$slash((function (param) {
                               return Routes_multi.s("home", param);
-                            }), (function (param) {
-                              return Routes_multi.str("name", param);
-                            }), param);
+                            }), Routes_multi.str, param);
               }), Routes_multi.nil);
 }
 
@@ -23,9 +21,7 @@ function project(param) {
   return Routes_multi.$slash$question((function (param) {
                 return Routes_multi.$slash((function (param) {
                               return Routes_multi.s("project", param);
-                            }), (function (param) {
-                              return Routes_multi.$$int("id", param);
-                            }), param);
+                            }), Routes_multi.$$int, param);
               }), Routes_multi.nil);
 }
 
@@ -34,12 +30,8 @@ function projectCat(param) {
                 return Routes_multi.$slash((function (param) {
                               return Routes_multi.$slash((function (param) {
                                             return Routes_multi.s("project", param);
-                                          }), (function (param) {
-                                            return Routes_multi.$$int("id", param);
-                                          }), param);
-                            }), (function (param) {
-                              return Routes_multi.str("cat", param);
-                            }), param);
+                                          }), Routes_multi.$$int, param);
+                            }), Routes_multi.str, param);
               }), Routes_multi.nil);
 }
 
@@ -137,7 +129,7 @@ function Playground_react_multi$App(Props) {
           MEL_EXN_ID: "Assert_failure",
           _1: [
             "playground_react_multi.re",
-            106,
+            105,
             27
           ],
           Error: new Error()
