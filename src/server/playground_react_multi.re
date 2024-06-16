@@ -12,7 +12,7 @@ let projectCat = () => Routes.(s("project") / int / str /? nil);
 type my_routes =
   | Home({name: string})
   | Project({id: int})
-  | Project_cat({
+  | Project_category({
       id: int,
       category: string,
     });
@@ -22,7 +22,7 @@ let router =
     Routes.(home() @--> (name => Home({name: name}))),
     Routes.(project() @--> (id => Project({id: id}))),
     Routes.(
-      projectCat() @--> ((id, cat) => Project_cat({id, category: cat}))
+      projectCat() @--> ((id, cat) => Project_category({id, category: cat}))
     ),
   ]
   |> Routes.one_of;
@@ -35,7 +35,7 @@ let handle = (route, ~children) => {
       {React.string("project id =  " ++ string_of_int(id))}
       children
     </div>
-  | Project_cat({id, _}) =>
+  | Project_category({id, _}) =>
     <div>
       {React.string("project id =  " ++ string_of_int(id) ++ " with cat")}
     </div>
@@ -45,7 +45,8 @@ let href = route => {
   switch (route) {
   | Home({name}) => Routes.sprintf(home(), name)
   | Project({id}) => Routes.sprintf(project(), id)
-  | Project_cat({id, category}) => Routes.sprintf(projectCat(), id, category)
+  | Project_category({id, category}) =>
+    Routes.sprintf(projectCat(), id, category)
   };
 };
 
@@ -95,7 +96,7 @@ module App = {
             </Link>
           </li>
           <li>
-            <Link href={href(Project_cat({id: 88, category: "todo"}))}>
+            <Link href={href(Project_category({id: 88, category: "todo"}))}>
               "Project 88/todo"->React.string
             </Link>
           </li>

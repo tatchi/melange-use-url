@@ -52,7 +52,7 @@ var router = Routes_multi.one_of({
         tl: {
           hd: Routes_multi.$at$neg$neg$great(projectCat(undefined), (function (id, cat) {
                   return {
-                          TAG: /* Project_cat */2,
+                          TAG: /* Project_category */2,
                           id: id,
                           category: cat
                         };
@@ -75,7 +75,7 @@ function handle(route, children) {
                       children
                     ]
                   });
-    case /* Project_cat */2 :
+    case /* Project_category */2 :
         return JsxRuntime.jsx("div", {
                     children: "project id =  " + (String(route.id) + " with cat")
                   });
@@ -89,7 +89,7 @@ function href(route) {
         return Curry._1(Routes_multi.sprintf(home(undefined)), route.name);
     case /* Project */1 :
         return Curry._1(Routes_multi.sprintf(project(undefined)), route.id);
-    case /* Project_cat */2 :
+    case /* Project_category */2 :
         return Curry._2(Routes_multi.sprintf(projectCat(undefined)), route.id, route.category);
     
   }
@@ -129,7 +129,7 @@ function Playground_react_multi$App(Props) {
           MEL_EXN_ID: "Assert_failure",
           _1: [
             "playground_react_multi.re",
-            105,
+            106,
             27
           ],
           Error: new Error()
@@ -161,7 +161,7 @@ function Playground_react_multi$App(Props) {
                               JsxRuntime.jsx("li", {
                                     children: JsxRuntime.jsx(Playground_react_multi$Link, {
                                           href: href({
-                                                TAG: /* Project_cat */2,
+                                                TAG: /* Project_category */2,
                                                 id: 88,
                                                 category: "todo"
                                               }),
