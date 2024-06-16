@@ -58,8 +58,8 @@ val s : string -> ('a, 'b) path -> ('a, 'b) path
 (** [s word] matches a path segment if it exactly matches [word]. The matched path param
     is then discarded. *)
 
+val wildcard : (Parts.t -> 'a, 'a) path
 (** [wildcard] matches all remaining path segments as a string. *)
-(* val wildcard : (Parts.t -> 'a, 'a) path *)
 
 val nil : ('a, 'a) path
 (** [nil] is used to end a sequence of path parameters. It can also be used to represent

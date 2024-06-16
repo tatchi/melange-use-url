@@ -46,7 +46,8 @@ var empty_children = KeyMap.empty;
 var empty = {
   parsers: /* [] */0,
   children: empty_children,
-  capture: undefined
+  capture: undefined,
+  wildcard: false
 };
 
 function feed_params(t, params) {
@@ -91,30 +92,44 @@ function add(k, v, t) {
                 tl: t.parsers
               },
               children: t.children,
-              capture: t.capture
+              capture: t.capture,
+              wildcard: t.wildcard
             };
     }
     var capture = t.capture;
     var children = t.children;
     var r = k.tl;
     var x = k.hd;
-    if (x) {
-      var w = x._0;
-      var v$1 = Curry._2(KeyMap.find_opt, w, children);
-      var t$p = v$1 !== undefined ? v$1 : empty;
+    if (typeof x === "number") {
+      if (x) {
+        return {
+                parsers: {
+                  hd: v,
+                  tl: t.parsers
+                },
+                children: t.children,
+                capture: t.capture,
+                wildcard: true
+              };
+      }
+      var t$p = capture !== undefined ? capture : empty;
       var t$p$p = aux(r, t$p);
       return {
               parsers: t.parsers,
-              children: Curry._3(KeyMap.add, w, t$p$p, children),
-              capture: t.capture
+              children: t.children,
+              capture: t$p$p,
+              wildcard: t.wildcard
             };
     }
-    var t$p$1 = capture !== undefined ? capture : empty;
+    var w = x._0;
+    var v$1 = Curry._2(KeyMap.find_opt, w, children);
+    var t$p$1 = v$1 !== undefined ? v$1 : empty;
     var t$p$p$1 = aux(r, t$p$1);
     return {
             parsers: t.parsers,
-            children: t.children,
-            capture: t$p$p$1
+            children: Curry._3(KeyMap.add, w, t$p$p$1, children),
+            capture: t.capture,
+            wildcard: t.wildcard
           };
   };
   return aux(k, t);
@@ -137,7 +152,7 @@ function union(t1, t2) {
                 MEL_EXN_ID: "Assert_failure",
                 _1: [
                   "routes_multi.ml",
-                  76,
+                  77,
                   26
                 ],
                 Error: new Error()
@@ -150,10 +165,18 @@ function union(t1, t2) {
     ) : (
       match$1 !== undefined ? match$1 : undefined
     );
+  var match$2 = t1.wildcard;
+  var match$3 = t2.wildcard;
+  var wildcard = match$2 ? (
+      match$3 ? true : Stdlib.failwith("Attemp to union wildcard and non-wildcard pattern")
+    ) : (
+      match$3 ? Stdlib.failwith("Attemp to union wildcard and non-wildcard pattern") : false
+    );
   return {
           parsers: parsers,
           children: children,
-          capture: capture
+          capture: capture,
+          wildcard: wildcard
         };
 }
 
@@ -306,7 +329,14 @@ function $slash$question(m1, m2) {
 
 function route_pattern(param) {
   if (typeof param === "number") {
-    return /* [] */0;
+    if (param === /* End */0) {
+      return /* [] */0;
+    } else {
+      return {
+              hd: /* Wildcard */1,
+              tl: /* [] */0
+            };
+    }
   } else if (param.TAG === /* Match */0) {
     return {
             hd: /* Match */{
@@ -325,7 +355,14 @@ function route_pattern(param) {
 function pp_path$p(path) {
   var aux = function (param) {
     if (typeof param === "number") {
-      return /* [] */0;
+      if (param === /* End */0) {
+        return /* [] */0;
+      } else {
+        return {
+                hd: ":wildcard",
+                tl: /* [] */0
+              };
+      }
     } else if (param.TAG === /* Match */0) {
       return {
               hd: param._0,
@@ -385,7 +422,21 @@ function ksprintf(k, t) {
       var param = _param;
       var k = _k;
       if (typeof param === "number") {
-        return Curry._1(k, /* [] */0);
+        if (param === /* End */0) {
+          return Curry._1(k, /* [] */0);
+        } else {
+          return (function(k){
+          return function (param) {
+            return Curry._1(k, Stdlib__List.concat({
+                            hd: param.matched,
+                            tl: {
+                              hd: /* [] */0,
+                              tl: /* [] */0
+                            }
+                          }));
+          }
+          }(k));
+        }
       }
       if (param.TAG === /* Match */0) {
         var w = param._0;
@@ -426,37 +477,63 @@ function sprintf(t) {
 function parse_route(path, handler, params) {
   var _t = path;
   var _f = handler;
+  var _seen = /* [] */0;
   var _s = params;
   while(true) {
     var s = _s;
+    var seen = _seen;
     var f = _f;
     var t = _t;
     if (typeof t === "number") {
-      return {
-              hd: f,
-              tl: /* [] */0
-            };
+      if (t === /* End */0) {
+        return /* FullMatch */{
+                _0: {
+                  hd: f,
+                  tl: /* [] */0
+                }
+              };
+      } else {
+        return /* FullMatch */{
+                _0: {
+                  hd: Curry._1(f, {
+                        prefix: Stdlib__List.rev(seen),
+                        matched: s
+                      }),
+                  tl: /* [] */0
+                }
+              };
+      }
     }
     if (t.TAG === /* Match */0) {
       if (!s) {
-        return /* [] */0;
+        return /* NoMatch */0;
       }
-      if (t._0 !== s.hd) {
-        return /* [] */0;
+      var x$p = s.hd;
+      if (t._0 !== x$p) {
+        return /* NoMatch */0;
       }
       _s = s.tl;
+      _seen = {
+        hd: x$p,
+        tl: seen
+      };
       _t = t._1;
       continue ;
     }
     if (!s) {
-      return /* [] */0;
+      return /* NoMatch */0;
     }
-    var x$p = Curry._1(t._0.from_, s.hd);
-    if (x$p === undefined) {
-      return /* [] */0;
+    var x = s.hd;
+    var x$p$1 = Curry._1(t._0.from_, x);
+    if (x$p$1 === undefined) {
+      return /* NoMatch */0;
     }
     _s = s.tl;
-    _f = Curry._1(f, Caml_option.valFromOption(x$p));
+    _seen = {
+      hd: x,
+      tl: seen
+    };
+    _f = Curry._1(f, Caml_option.valFromOption(x$p$1));
     _t = t._1;
     continue ;
   };
@@ -486,18 +563,24 @@ function map(f, param) {
         };
 }
 
-function match_routes(target, _routes, _acc) {
+function match$p(router, target) {
+  var target$1 = split_path(target);
+  var routes = feed_params(router, target$1);
+  var _routes = routes;
+  var _acc = /* [] */0;
   while(true) {
     var acc = _acc;
-    var routes = _routes;
-    if (!routes) {
-      return acc;
+    var routes$1 = _routes;
+    if (!routes$1) {
+      return /* FullMatch */{
+              _0: acc
+            };
     }
-    var rs = routes.tl;
-    var match = routes.hd;
-    var r = parse_route(match._0, match._1, target);
+    var rs = routes$1.tl;
+    var match = routes$1.hd;
+    var r = parse_route(match._0, match._1, target$1);
     if (r) {
-      var r$1 = Stdlib__List.map(match._2, r);
+      var r$1 = Stdlib__List.map(match._2, r._0);
       _acc = Stdlib.$at(r$1, acc);
       _routes = rs;
       continue ;
@@ -505,19 +588,6 @@ function match_routes(target, _routes, _acc) {
     _routes = rs;
     continue ;
   };
-}
-
-function match$p(router, target) {
-  var target$1 = split_path(target);
-  var routes = feed_params(router, target$1);
-  var res = match_routes(target$1, routes, /* [] */0);
-  if (res) {
-    return /* FullMatch */{
-            _0: res
-          };
-  } else {
-    return /* NoMatch */0;
-  }
 }
 
 function $slash$tilde(m, path) {
@@ -530,6 +600,8 @@ var Parts = {
   of_parts: of_parts
 };
 
+var wildcard = /* Wildcard */1;
+
 var nil = /* End */0;
 
 export {
@@ -540,6 +612,7 @@ export {
   str ,
   bool ,
   s ,
+  wildcard ,
   nil ,
   pattern ,
   custom ,

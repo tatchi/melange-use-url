@@ -14,8 +14,7 @@ end
 
 module PatternTrie = struct
   module Key = struct
-    type t = Match : string -> t | Capture : t
-    (* | Wildcard : t *)
+    type t = Match : string -> t | Capture : t | Wildcard : t
   end
 
   module KeyMap = Map.Make (String)
@@ -23,12 +22,14 @@ module PatternTrie = struct
   type 'a node = {
     parsers : 'a list;
     children : 'a node KeyMap.t;
-    capture : 'a node option; (* wildcard : bool; *)
+    capture : 'a node option;
+    wildcard : bool;
   }
 
   type 'a t = 'a node
 
-  let empty = { parsers = []; children = KeyMap.empty; capture = None }
+  let empty =
+    { parsers = []; children = KeyMap.empty; capture = None; wildcard = false }
 
   let feed_params t params =
     let rec aux t params acc =
@@ -62,7 +63,7 @@ module PatternTrie = struct
               let t' = match capture with None -> empty | Some v -> v in
               let t'' = aux r t' in
               { n with capture = Some t'' }
-              (* | Key.Wildcard -> { n with parsers = v :: n.parsers; wildcard = true } *)
+          | Key.Wildcard -> { n with parsers = v :: n.parsers; wildcard = true }
           )
     in
     aux k t
@@ -86,14 +87,14 @@ module PatternTrie = struct
       | None, Some r -> Some r
       | Some l, Some r -> Some (union l r)
     in
-    (* let wildcard =
-         match (t1.wildcard, t2.wildcard) with
-         | false, false -> false
-         | true, true -> true
-         | false, true | true, false ->
-             failwith "Attemp to union wildcard and non-wildcard pattern"
-       in *)
-    { parsers; children; capture }
+    let wildcard =
+      match (t1.wildcard, t2.wildcard) with
+      | false, false -> false
+      | true, true -> true
+      | false, true | true, false ->
+          failwith "Attemp to union wildcard and non-wildcard pattern"
+    in
+    { parsers; children; capture; wildcard }
 end
 
 type 'a conv = {
@@ -115,7 +116,7 @@ end
 
 type ('a, 'b) path =
   | End : ('a, 'a) path
-  (* | Wildcard : (Parts.t -> 'a, 'a) path *)
+  | Wildcard : (Parts.t -> 'a, 'a) path
   | Match : string * ('a, 'b) path -> ('a, 'b) path
   | Conv : 'c conv * ('a, 'b) path -> ('c -> 'a, 'b) path
 
@@ -134,8 +135,7 @@ let int64 r = of_conv (conv Int64.to_string Int64.of_string_opt ":int64") r
 let int32 r = of_conv (conv Int32.to_string Int32.of_string_opt ":int32") r
 let str r = of_conv (conv (fun x -> x) (fun x -> Some x) ":string") r
 let bool r = of_conv (conv string_of_bool bool_of_string_opt ":bool") r
-
-(* let wildcard = Wildcard *)
+let wildcard = Wildcard
 let ( / ) m1 m2 r = m1 @@ m2 r
 let nil = End
 let ( /? ) m1 m2 = m1 m2
@@ -143,14 +143,14 @@ let ( /? ) m1 m2 = m1 m2
 let rec route_pattern : type a b. (a, b) path -> PatternTrie.Key.t list =
   function
   | End -> []
-  (* | Wildcard -> [ PatternTrie.Key.Wildcard ] *)
+  | Wildcard -> [ PatternTrie.Key.Wildcard ]
   | Match (w, fmt) -> PatternTrie.Key.Match w :: route_pattern fmt
   | Conv (_, fmt) -> PatternTrie.Key.Capture :: route_pattern fmt
 
 let pp_path' path =
   let rec aux : type a b. (a, b) path -> string list = function
     | End -> []
-    (* | Wildcard -> [ ":wildcard" ] *)
+    | Wildcard -> [ ":wildcard" ]
     | Match (w, fmt) -> w :: aux fmt
     | Conv ({ label; _ }, fmt) -> label :: aux fmt
   in
@@ -167,7 +167,7 @@ let ksprintf' k path =
   let rec aux : type a b. (string list -> b) -> (a, b) path -> a =
    fun k -> function
     | End -> k []
-    (* | Wildcard -> fun { Parts.matched; _ } -> k (List.concat [ matched; [] ]) *)
+    | Wildcard -> fun { Parts.matched; _ } -> k (List.concat [ matched; [] ])
     | Match (w, fmt) -> aux (fun s -> k @@ (w :: s)) fmt
     | Conv ({ to_; _ }, fmt) ->
         fun x -> aux (fun rest -> k @@ (to_ x :: rest)) fmt
@@ -180,22 +180,26 @@ let sprintf t = ksprintf (fun x -> x) t
 type 'a match_result = FullMatch of 'a list | NoMatch
 
 let parse_route path handler params =
-  let rec match_target : type a b. (a, b) path -> a -> string list -> b list =
-   fun t f s ->
+  let rec match_target :
+      type a b. (a, b) path -> a -> string list -> string list -> b match_result
+      =
+   fun t f seen s ->
     match t with
-    | End -> ( match s with [] | [ "" ] -> [ f ] | _ -> [ f ])
-    (* | Wildcard -> FullMatch (f { Parts.prefix = List.rev seen; matched = s }) *)
+    | End -> FullMatch [ f ]
+    | Wildcard -> FullMatch [ f { Parts.prefix = List.rev seen; matched = s } ]
     | Match (x, fmt) -> (
-        match s with x' :: xs when x = x' -> match_target fmt f xs | _ -> [])
+        match s with
+        | x' :: xs when x = x' -> match_target fmt f (x' :: seen) xs
+        | _ -> NoMatch)
     | Conv ({ from_; _ }, fmt) -> (
         match s with
-        | [] -> []
+        | [] -> NoMatch
         | x :: xs -> (
             match from_ x with
-            | None -> []
-            | Some x' -> match_target fmt (f x') xs))
+            | None -> NoMatch
+            | Some x' -> match_target fmt (f x') (x :: seen) xs))
   in
-  match_target path handler params
+  match_target path handler [] params
 
 let one_of routes =
   let routes = List.rev routes in
@@ -216,18 +220,17 @@ let map f (Route (r, h, g)) = Route (r, h, fun x -> f (g x))
 
 let rec match_routes target routes acc =
   match routes with
-  | [] -> acc
+  | [] -> FullMatch acc
   | Route (r, h, f) :: rs -> (
       match parse_route r h target with
-      | [] -> match_routes target rs acc
-      | r ->
+      | NoMatch -> match_routes target rs acc
+      | FullMatch r ->
           let r = List.map f r in
           match_routes target rs (r @ acc))
 
 let match' router ~target =
   let target = Util.split_path target in
   let routes = PatternTrie.feed_params router target in
-  let res = match_routes target routes [] in
-  match res with [] -> NoMatch | l -> FullMatch l
+  match_routes target routes []
 
 let ( /~ ) m path = m path
