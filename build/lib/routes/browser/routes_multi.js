@@ -486,12 +486,16 @@ function parse_route(path, handler, params) {
     var t = _t;
     if (typeof t === "number") {
       if (t === /* End */0) {
-        return /* FullMatch */{
-                _0: {
-                  hd: f,
-                  tl: /* [] */0
-                }
-              };
+        if (s && !(s.hd === "" && !s.tl)) {
+          return /* NoMatch */0;
+        } else {
+          return /* FullMatch */{
+                  _0: {
+                    hd: f,
+                    tl: /* [] */0
+                  }
+                };
+        }
       } else {
         return /* FullMatch */{
                 _0: {
