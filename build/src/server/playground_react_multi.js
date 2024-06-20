@@ -129,7 +129,7 @@ function Playground_react_multi$App(Props) {
           MEL_EXN_ID: "Assert_failure",
           _1: [
             "playground_react_multi.re",
-            106,
+            113,
             27
           ],
           Error: new Error()

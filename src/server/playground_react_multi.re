@@ -9,6 +9,12 @@ let project = () => Routes.(s("project") / int /? nil);
 
 let projectCat = () => Routes.(s("project") / int / str /? nil);
 
+// Flat
+// type all_routes =
+//   | Home
+//   | Projects
+//   | Project({id: int});
+
 type my_routes =
   | Home({name: string})
   | Project({id: int})
@@ -41,6 +47,7 @@ let handle = (route, ~children) => {
     </div>
   };
 };
+
 let href = route => {
   switch (route) {
   | Home({name}) => Routes.sprintf(home(), name)

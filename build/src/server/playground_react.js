@@ -4,78 +4,171 @@ import * as Caml_option from "melange.js/caml_option.js";
 import * as Curry from "melange.js/curry.js";
 import * as ReasonReactRouter from "reason-react/ReasonReactRouter.js";
 import * as Routes from "../../lib/routes/browser/routes.js";
+import * as Stdlib__Array from "melange/array.js";
 import * as Stdlib__List from "melange/list.js";
 import * as React from "react";
 import * as Client from "react-dom/client";
 import * as JsxRuntime from "react/jsx-runtime";
 
 function home(param) {
-  return Routes.$slash$question((function (param) {
-                return Routes.$slash((function (param) {
-                              return Routes.s("home", param);
-                            }), Routes.str, param);
-              }), Routes.nil);
+  return Routes.nil;
 }
 
-function project(param) {
-  return Routes.$slash$question((function (param) {
-                return Routes.$slash((function (param) {
-                              return Routes.s("project", param);
-                            }), Routes.$$int, param);
-              }), Routes.nil);
+function dashboard_id(param) {
+  return Routes.$slash$question(Routes.$$int, Routes.nil);
 }
 
 var router = Routes.one_of({
-      hd: Routes.$at$neg$neg$great(home(undefined), (function (name) {
-              return {
-                      TAG: /* Home */0,
-                      name: name
+      hd: Routes.$at$neg$neg$great(Routes.$slash$question(Routes.$$int, Routes.nil), (function (id) {
+              return /* Dashboard_id */{
+                      id: id
                     };
             })),
+      tl: /* [] */0
+    });
+
+function href(route) {
+  return Curry._1(Routes.sprintf(Routes.$slash$question(Routes.$$int, Routes.nil)), route.id);
+}
+
+function handle(route) {
+  return JsxRuntime.jsx("div", {
+              children: "dashboard with id = " + String(route.id)
+            });
+}
+
+function Playground_react$Dashboard_router(Props) {
+  var target = Props.target;
+  var match = Routes.match$p(router, target);
+  if (typeof match === "number") {
+    return JsxRuntime.jsx("div", {
+                children: " Dashboard_router Not Found"
+              });
+  } else {
+    return handle(match._0);
+  }
+}
+
+var Dashboard_router = {
+  home: home,
+  dashboard_id: dashboard_id,
+  router: router,
+  href: href,
+  handle: handle,
+  make: Playground_react$Dashboard_router
+};
+
+function home$1(param) {
+  return Routes.nil;
+}
+
+function dashboard(param) {
+  return Routes.$slash$question((function (param) {
+                return Routes.s("dashboard", param);
+              }), Routes.nil);
+}
+
+function siteExplorer(param) {
+  return Routes.$slash$question((function (param) {
+                return Routes.s("site-explorer", param);
+              }), Routes.nil);
+}
+
+var router$1 = Routes.one_of({
+      hd: Routes.$at$neg$neg$great(Routes.nil, /* Home */0),
       tl: {
-        hd: Routes.$at$neg$neg$great(project(undefined), (function (id) {
-                return {
-                        TAG: /* Project */1,
-                        id: id
-                      };
-              })),
-        tl: /* [] */0
+        hd: Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
+                    return Routes.s("dashboard", param);
+                  }), Routes.nil), /* Dashboard */1),
+        tl: {
+          hd: Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
+                      return Routes.s("site-explorer", param);
+                    }), Routes.nil), /* SiteExplorer */2),
+          tl: /* [] */0
+        }
       }
     });
 
-function handle(route) {
-  if (route.TAG === /* Home */0) {
-    return JsxRuntime.jsx("div", {
-                children: "Welcome home " + route.name
-              });
-  } else {
-    return JsxRuntime.jsx("div", {
-                children: "project id =  " + String(route.id)
-              });
+function href$1(route) {
+  switch (route) {
+    case /* Home */0 :
+        return Routes.sprintf(Routes.nil);
+    case /* Dashboard */1 :
+        return Routes.sprintf(Routes.$slash$question((function (param) {
+                          return Routes.s("dashboard", param);
+                        }), Routes.nil));
+    case /* SiteExplorer */2 :
+        return Routes.sprintf(Routes.$slash$question((function (param) {
+                          return Routes.s("site-explorer", param);
+                        }), Routes.nil));
+    
   }
 }
 
-function href(route) {
-  if (route.TAG === /* Home */0) {
-    return Curry._1(Routes.sprintf(home(undefined)), route.name);
-  } else {
-    return Curry._1(Routes.sprintf(project(undefined)), route.id);
+function handle$1(route) {
+  switch (route) {
+    case /* Home */0 :
+        return JsxRuntime.jsx("h1", {
+                    children: "Home"
+                  });
+    case /* Dashboard */1 :
+        return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h1", {
+                        children: "Dashboard"
+                      }), JsxRuntime.jsx(Playground_react$Dashboard_router, {
+                        target: ""
+                      }));
+    case /* SiteExplorer */2 :
+        return JsxRuntime.jsx("h1", {
+                    children: "SiteExplorer"
+                  });
+    
   }
 }
+
+var Root_router = {
+  home: home$1,
+  dashboard: dashboard,
+  siteExplorer: siteExplorer,
+  router: router$1,
+  href: href$1,
+  handle: handle$1
+};
+
+function Playground_react$Dashboard_page(Props) {
+  return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h1", {
+                  children: "Dashboard"
+                }), Stdlib__Array.map((function (id) {
+                    var idStr = String(id);
+                    return JsxRuntime.jsx("div", {}, idStr);
+                  }), [
+                  1,
+                  2,
+                  3
+                ]));
+}
+
+var Dashboard_page = {
+  make: Playground_react$Dashboard_page
+};
 
 var Client$1 = {};
 
 function Playground_react$Link(Props) {
   var href = Props.href;
   var children = Props.children;
-  return JsxRuntime.jsx("a", {
-              children: children,
-              href: href,
-              onClick: (function ($$event) {
-                  $$event.preventDefault();
-                  ReasonReactRouter.push(href);
-                })
-            });
+  var style = Props.style;
+  var tmp = {
+    children: children,
+    href: href,
+    onClick: (function ($$event) {
+        $$event.preventDefault();
+        ReasonReactRouter.push(href);
+      })
+  };
+  if (style !== undefined) {
+    tmp.style = Caml_option.valFromOption(style);
+  }
+  return JsxRuntime.jsx("a", tmp);
 }
 
 var Link = {
@@ -88,45 +181,45 @@ function Playground_react$App(Props) {
   var pathname = path ? Stdlib__List.fold_left((function (acc, v) {
             return acc + ("/" + v);
           }), "", path) : "/";
-  var match = Routes.match$p(router, pathname);
-  if (typeof match === "number") {
-    throw {
-          MEL_EXN_ID: "Assert_failure",
-          _1: [
-            "playground_react.re",
-            81,
-            27
-          ],
-          Error: new Error()
-        };
-  }
-  return JsxRuntime.jsxs("main", {
+  var match = Routes.match$p(router$1, pathname);
+  return JsxRuntime.jsxs("header", {
               children: [
-                JsxRuntime.jsx("nav", {
-                      children: JsxRuntime.jsxs("ul", {
+                JsxRuntime.jsx("div", {
+                      children: JsxRuntime.jsxs("nav", {
                             children: [
-                              JsxRuntime.jsx("li", {
-                                    children: JsxRuntime.jsx(Playground_react$Link, {
-                                          href: href({
-                                                TAG: /* Home */0,
-                                                name: "tatchi"
-                                              }),
-                                          children: "Home"
-                                        })
+                              JsxRuntime.jsx(Playground_react$Link, {
+                                    href: Routes.sprintf(Routes.nil),
+                                    children: "Home"
                                   }),
-                              JsxRuntime.jsx("li", {
-                                    children: JsxRuntime.jsx(Playground_react$Link, {
-                                          href: href({
-                                                TAG: /* Project */1,
-                                                id: 88
-                                              }),
-                                          children: "Project 88"
-                                        })
+                              JsxRuntime.jsx(Playground_react$Link, {
+                                    href: href$1(/* Dashboard */1),
+                                    children: "Dashboard",
+                                    style: {
+                                      marginLeft: "24px"
+                                    }
+                                  }),
+                              JsxRuntime.jsx(Playground_react$Link, {
+                                    href: href$1(/* SiteExplorer */2),
+                                    children: "Site Explorer",
+                                    style: {
+                                      marginLeft: "24px"
+                                    }
                                   })
-                            ]
-                          })
+                            ],
+                            style: {
+                              display: "flex",
+                              alignItems: "center"
+                            }
+                          }),
+                      style: {
+                        padding: "4px 5px"
+                      }
                     }),
-                handle(match._0)
+                JsxRuntime.jsx("main", {
+                      children: typeof match === "number" ? JsxRuntime.jsx("div", {
+                              children: "Root_router Not Found"
+                            }) : handle$1(match._0)
+                    })
               ]
             });
 }
@@ -148,11 +241,9 @@ if (node == null) {
 var node$1 = (node == null) ? undefined : Caml_option.some(node);
 
 export {
-  home ,
-  project ,
-  router ,
-  handle ,
-  href ,
+  Dashboard_router ,
+  Root_router ,
+  Dashboard_page ,
   Client$1 as Client,
   Link ,
   App ,

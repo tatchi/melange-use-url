@@ -1,32 +1,105 @@
 type route('v) =
   | Route(Routes.path('a, 'v), 'a): route('v);
 
-let home = () => Routes.(s("home") / str /? nil);
+module Dashboard_router = {
+  let home = () => Routes.(nil);
+  let dashboard_id = () => Routes.(int /? nil);
 
-let project = () => Routes.(s("project") / int /? nil);
+  type t =
+    // | Home
+    | Dashboard_id({id: int});
 
-type my_routes =
-  | Home({name: string})
-  | Project({id: int});
+  let router =
+    [
+      // Routes.(home() @--> Home),
+      Routes.(dashboard_id() @--> (id => Dashboard_id({id: id}))),
+    ]
+    |> Routes.one_of;
 
-let router =
-  [
-    Routes.(home() @--> (name => Home({name: name}))),
-    Routes.(project() @--> (id => Project({id: id}))),
-  ]
-  |> Routes.one_of;
-
-let handle = route =>
-  switch (route) {
-  | Home({name}) => <div> {React.string("Welcome home " ++ name)} </div>
-  | Project({id}) =>
-    <div> {React.string("project id =  " ++ string_of_int(id))} </div>
+  let href = route => {
+    switch (route) {
+    // | Home => Routes.sprintf(home())
+    | Dashboard_id({id}) => Routes.sprintf(dashboard_id(), id)
+    };
   };
 
-let href = route => {
-  switch (route) {
-  | Home({name}) => Routes.sprintf(home(), name)
-  | Project({id}) => Routes.sprintf(project(), id)
+  let handle = route =>
+    switch (route) {
+    // | Home => <h1> {React.string("Home")} </h1>
+    | Dashboard_id({id}) =>
+      <div>
+        {React.string("dashboard with id = " ++ string_of_int(id))}
+      </div>
+    };
+
+  [@react.component]
+  let make = (~target) => {
+    switch (Routes.match'(router, ~target)) {
+    | Routes.NoMatch =>
+      <div> {React.string(" Dashboard_router Not Found")} </div>
+    | Routes.FullMatch(route)
+    | Routes.MatchWithTrailingSlash(route) => handle(route)
+    };
+  };
+};
+
+module Root_router = {
+  let home = () => Routes.(nil);
+  let dashboard = () => Routes.(s("dashboard") /? nil);
+  let siteExplorer = () => Routes.(s("site-explorer") /? nil);
+
+  type t =
+    | Home
+    | Dashboard
+    | SiteExplorer;
+
+  let router =
+    [
+      Routes.(home() @--> Home),
+      Routes.(dashboard() @--> Dashboard),
+      Routes.(siteExplorer() @--> SiteExplorer),
+    ]
+    |> Routes.one_of;
+
+  let href = route => {
+    switch (route) {
+    | Home => Routes.sprintf(home())
+    | Dashboard => Routes.sprintf(dashboard())
+    | SiteExplorer => Routes.sprintf(siteExplorer())
+    };
+  };
+
+  let handle = route =>
+    switch (route) {
+    | Home => <h1> {React.string("Home")} </h1>
+    | Dashboard =>
+      <>
+        <h1> {React.string("Dashboard")} </h1>
+        <Dashboard_router target="" />
+      </>
+    | SiteExplorer => <h1> {React.string("SiteExplorer")} </h1>
+    };
+};
+
+module Dashboard_page = {
+  [@react.component]
+  let make = () => {
+    <>
+      <h1> {React.string("Dashboard")} </h1>
+      {{
+         [|1, 2, 3|]
+         |> Array.map(id => {
+              let idStr = string_of_int(id);
+              <div
+                key=idStr
+                // <Link href={Da}>
+                //   {("Dashboard " ++ idStr)->React.string}
+                // </Link>
+              />;
+            });
+       }
+       ->React.array}
+    </>;
   };
 };
 
@@ -41,8 +114,9 @@ module Client = {
 
 module Link = {
   [@react.component]
-  let make = (~href, ~children) => {
+  let make = (~href, ~children, ~style=?) => {
     <a
+      ?style
       href
       onClick={event => {
         React.Event.Mouse.preventDefault(event);
@@ -62,27 +136,36 @@ module App = {
       | [] => "/"
       | path => path |> List.fold_left((acc, v) => acc ++ "/" ++ v, "")
       };
-    <main>
-      <nav>
-        <ul>
-          <li>
-            <Link href={href(Home({name: "tatchi"}))}>
-              "Home"->React.string
-            </Link>
-          </li>
-          <li>
-            <Link href={href(Project({id: 88}))}>
-              "Project 88"->React.string
-            </Link>
-          </li>
-        </ul>
-      </nav>
-      {switch (Routes.match'(router, ~target=pathname)) {
-       | Routes.NoMatch => assert(false)
-       | Routes.FullMatch(route)
-       | Routes.MatchWithTrailingSlash(route) => handle(route)
-       }}
-    </main>;
+    <header>
+      <div style={ReactDOM.Style.make(~padding="4px 5px", ())}>
+        <nav
+          style={ReactDOM.Style.make(
+            ~display="flex",
+            ~alignItems="center",
+            (),
+          )}>
+          <Link href={Root_router.href(Home)}> "Home"->React.string </Link>
+          <Link
+            href={Root_router.href(Dashboard)}
+            style={ReactDOM.Style.make(~marginLeft="24px", ())}>
+            "Dashboard"->React.string
+          </Link>
+          <Link
+            href={Root_router.href(SiteExplorer)}
+            style={ReactDOM.Style.make(~marginLeft="24px", ())}>
+            "Site Explorer"->React.string
+          </Link>
+        </nav>
+      </div>
+      <main>
+        {switch (Routes.match'(Root_router.router, ~target=pathname)) {
+         | Routes.NoMatch =>
+           <div> {React.string("Root_router Not Found")} </div>
+         | Routes.FullMatch(route)
+         | Routes.MatchWithTrailingSlash(route) => Root_router.handle(route)
+         }}
+      </main>
+    </header>;
   };
 };
 

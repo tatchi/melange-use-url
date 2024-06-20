@@ -52,3 +52,46 @@ type all_routes =
   | Projects [@GET "/projects"]
 [@@deriving router]
 ```
+
+## Add support in routes itself
+
+```ocaml
+
+let home () = Routes.(s "home" / str)
+let inner () = Routes.(s "dashoard" / int)
+
+let both () = Routes.(home () /~ (inner () /? nil))
+let res = Routes.(both () @--> fun a b -> "")
+```
+
+## Others
+
+Maybe specify the children in the return value of the handler ? But then we don't know them ahead of time so we cannot generate `hrefs`
+
+## Notes from call with AndreyPopp
+
+module Dashboard = {
+type t =
+| Home [@get ""]
+| Details({id: int, children: Dashboard_details.t [@children]}) [@get ":id"]
+};
+
+let handler = route => switch {
+| Details ({id}) => <Layout>{Dashboard_details.handle(id, route)}</Layout>
+| Another ({id}) => <Layout>{Dashboard_details.handle(id, route)}</Layout>
+}
+
+module Dashboard_details = {
+type t =
+| Analytics [@GET "/analytics"]
+| Export [@GET "export"];
+};
+
+let handler = (route, id) => switch {
+| Analytics => ...
+}
+
+module Root = {
+type t(\_) =
+| [@prefix "/dashboard"] Dashboard(Dashboard.t): t(React.element);
+};
