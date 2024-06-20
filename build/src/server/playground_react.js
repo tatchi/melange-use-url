@@ -10,148 +10,17 @@ import * as React from "react";
 import * as Client from "react-dom/client";
 import * as JsxRuntime from "react/jsx-runtime";
 
-function home(param) {
-  return Routes.nil;
-}
-
-function dashboard_id(param) {
-  return Routes.$slash$question(Routes.$$int, Routes.nil);
-}
-
-var router = Routes.one_of({
-      hd: Routes.$at$neg$neg$great(Routes.$slash$question(Routes.$$int, Routes.nil), (function (id) {
-              return /* Dashboard_id */{
-                      id: id
-                    };
-            })),
-      tl: /* [] */0
-    });
-
-function href(route) {
-  return Curry._1(Routes.sprintf(Routes.$slash$question(Routes.$$int, Routes.nil)), route.id);
-}
-
-function handle(route) {
-  return JsxRuntime.jsx("div", {
-              children: "dashboard with id = " + String(route.id)
-            });
-}
-
-function Playground_react$Dashboard_router(Props) {
-  var target = Props.target;
-  var match = Routes.match$p(router, target);
-  if (typeof match === "number") {
-    return JsxRuntime.jsx("div", {
-                children: " Dashboard_router Not Found"
-              });
+function usePathname(param) {
+  var url = ReasonReactRouter.useUrl(undefined, undefined);
+  var path = url.path;
+  if (path) {
+    return Stdlib__List.fold_left((function (acc, v) {
+                  return acc + ("/" + v);
+                }), "", path);
   } else {
-    return handle(match._0);
+    return "/";
   }
 }
-
-var Dashboard_router = {
-  home: home,
-  dashboard_id: dashboard_id,
-  router: router,
-  href: href,
-  handle: handle,
-  make: Playground_react$Dashboard_router
-};
-
-function home$1(param) {
-  return Routes.nil;
-}
-
-function dashboard(param) {
-  return Routes.$slash$question((function (param) {
-                return Routes.s("dashboard", param);
-              }), Routes.nil);
-}
-
-function siteExplorer(param) {
-  return Routes.$slash$question((function (param) {
-                return Routes.s("site-explorer", param);
-              }), Routes.nil);
-}
-
-var router$1 = Routes.one_of({
-      hd: Routes.$at$neg$neg$great(Routes.nil, /* Home */0),
-      tl: {
-        hd: Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
-                    return Routes.s("dashboard", param);
-                  }), Routes.nil), /* Dashboard */1),
-        tl: {
-          hd: Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
-                      return Routes.s("site-explorer", param);
-                    }), Routes.nil), /* SiteExplorer */2),
-          tl: /* [] */0
-        }
-      }
-    });
-
-function href$1(route) {
-  switch (route) {
-    case /* Home */0 :
-        return Routes.sprintf(Routes.nil);
-    case /* Dashboard */1 :
-        return Routes.sprintf(Routes.$slash$question((function (param) {
-                          return Routes.s("dashboard", param);
-                        }), Routes.nil));
-    case /* SiteExplorer */2 :
-        return Routes.sprintf(Routes.$slash$question((function (param) {
-                          return Routes.s("site-explorer", param);
-                        }), Routes.nil));
-    
-  }
-}
-
-function handle$1(route) {
-  switch (route) {
-    case /* Home */0 :
-        return JsxRuntime.jsx("h1", {
-                    children: "Home"
-                  });
-    case /* Dashboard */1 :
-        return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h1", {
-                        children: "Dashboard"
-                      }), JsxRuntime.jsx(Playground_react$Dashboard_router, {
-                        target: ""
-                      }));
-    case /* SiteExplorer */2 :
-        return JsxRuntime.jsx("h1", {
-                    children: "SiteExplorer"
-                  });
-    
-  }
-}
-
-var Root_router = {
-  home: home$1,
-  dashboard: dashboard,
-  siteExplorer: siteExplorer,
-  router: router$1,
-  href: href$1,
-  handle: handle$1
-};
-
-function Playground_react$Dashboard_page(Props) {
-  return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h1", {
-                  children: "Dashboard"
-                }), Stdlib__Array.map((function (id) {
-                    var idStr = String(id);
-                    return JsxRuntime.jsx("div", {}, idStr);
-                  }), [
-                  1,
-                  2,
-                  3
-                ]));
-}
-
-var Dashboard_page = {
-  make: Playground_react$Dashboard_page
-};
-
-var Client$1 = {};
 
 function Playground_react$Link(Props) {
   var href = Props.href;
@@ -175,13 +44,190 @@ var Link = {
   make: Playground_react$Link
 };
 
+function home(param) {
+  return Routes.nil;
+}
+
+function dashboard(param) {
+  return Routes.$slash$question((function (param) {
+                return Routes.s("dashboard", param);
+              }), Routes.wildcard);
+}
+
+function siteExplorer(param) {
+  return Routes.$slash$question((function (param) {
+                return Routes.s("site-explorer", param);
+              }), Routes.nil);
+}
+
+var router = Routes.one_of({
+      hd: Routes.$at$neg$neg$great(Routes.nil, /* Home */0),
+      tl: {
+        hd: Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
+                    return Routes.s("dashboard", param);
+                  }), Routes.wildcard), (function (param) {
+                return /* Dashboard */1;
+              })),
+        tl: {
+          hd: Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
+                      return Routes.s("site-explorer", param);
+                    }), Routes.nil), /* SiteExplorer */2),
+          tl: /* [] */0
+        }
+      }
+    });
+
+function href(route) {
+  switch (route) {
+    case /* Home */0 :
+        return Routes.sprintf(Routes.nil);
+    case /* Dashboard */1 :
+        return Curry._1(Routes.sprintf(Routes.$slash$question((function (param) {
+                              return Routes.s("dashboard", param);
+                            }), Routes.wildcard)), Routes.Parts.of_parts(""));
+    case /* SiteExplorer */2 :
+        return Routes.sprintf(Routes.$slash$question((function (param) {
+                          return Routes.s("site-explorer", param);
+                        }), Routes.nil));
+    
+  }
+}
+
+var Root_router = {
+  home: home,
+  dashboard: dashboard,
+  siteExplorer: siteExplorer,
+  router: router,
+  href: href
+};
+
+function home$1(param) {
+  return Routes.nil;
+}
+
+function dashboard_id(param) {
+  return Routes.$slash$question(Routes.$$int, Routes.nil);
+}
+
+var router$1 = Routes.one_of({
+      hd: Routes.$at$neg$neg$great(Routes.nil, /* Home */0),
+      tl: {
+        hd: Routes.$at$neg$neg$great(Routes.$slash$question(Routes.$$int, Routes.nil), (function (id) {
+                return /* Dashboard_id */{
+                        id: id
+                      };
+              })),
+        tl: /* [] */0
+      }
+    });
+
+function href$1(route) {
+  var prefix = href(/* Dashboard */1);
+  if (route) {
+    return prefix + Curry._1(Routes.sprintf(Routes.$slash$question(Routes.$$int, Routes.nil)), route.id);
+  } else {
+    return prefix + Routes.sprintf(Routes.nil);
+  }
+}
+
+var Dashboard_router = {
+  home: home$1,
+  dashboard_id: dashboard_id,
+  router: router$1,
+  href: href$1
+};
+
+function Playground_react$Dashboard_home(Props) {
+  return React.createElement(JsxRuntime.Fragment, undefined, Stdlib__Array.map((function (id) {
+                    var idStr = String(id);
+                    return JsxRuntime.jsx("div", {
+                                children: JsxRuntime.jsx(Playground_react$Link, {
+                                      href: href$1(/* Dashboard_id */{
+                                            id: id
+                                          }),
+                                      children: "Dashboard " + idStr
+                                    })
+                              }, idStr);
+                  }), [
+                  1,
+                  2,
+                  3
+                ]));
+}
+
+var Dashboard_home = {
+  make: Playground_react$Dashboard_home
+};
+
+function handle(route) {
+  if (route) {
+    return JsxRuntime.jsx("div", {
+                children: "dashboard with id = " + String(route.id)
+              });
+  } else {
+    return JsxRuntime.jsx(Playground_react$Dashboard_home, {});
+  }
+}
+
+function Playground_react$Dashboard(Props) {
+  var target = Props.target;
+  var match = Routes.match$p(router$1, target);
+  if (typeof match === "number") {
+    return JsxRuntime.jsx("div", {
+                children: " Dashboard_router Not Found"
+              });
+  } else {
+    return handle(match._0);
+  }
+}
+
+var Dashboard = {
+  handle: handle,
+  make: Playground_react$Dashboard
+};
+
+function handle$1(route, rest) {
+  switch (route) {
+    case /* Home */0 :
+        return JsxRuntime.jsx("h1", {
+                    children: "Home"
+                  });
+    case /* Dashboard */1 :
+        return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h1", {
+                        children: "Dashboard"
+                      }), JsxRuntime.jsx(Playground_react$Dashboard, {
+                        target: rest
+                      }));
+    case /* SiteExplorer */2 :
+        return JsxRuntime.jsx("h1", {
+                    children: "SiteExplorer"
+                  });
+    
+  }
+}
+
+function Playground_react$Root(Props) {
+  var pathname = usePathname(undefined);
+  var match = Routes.match$p(router, pathname);
+  if (typeof match === "number") {
+    return JsxRuntime.jsx("div", {
+                children: "Root_router Not Found"
+              });
+  }
+  var route = match._0;
+  var matchedHref = href(route);
+  var rest = pathname.replace(matchedHref, "");
+  return handle$1(route, rest);
+}
+
+var Root = {
+  handle: handle$1,
+  make: Playground_react$Root
+};
+
+var Client$1 = {};
+
 function Playground_react$App(Props) {
-  var url = ReasonReactRouter.useUrl(undefined, undefined);
-  var path = url.path;
-  var pathname = path ? Stdlib__List.fold_left((function (acc, v) {
-            return acc + ("/" + v);
-          }), "", path) : "/";
-  var match = Routes.match$p(router$1, pathname);
   return JsxRuntime.jsxs("header", {
               children: [
                 JsxRuntime.jsx("div", {
@@ -192,14 +238,14 @@ function Playground_react$App(Props) {
                                     children: "Home"
                                   }),
                               JsxRuntime.jsx(Playground_react$Link, {
-                                    href: href$1(/* Dashboard */1),
+                                    href: href(/* Dashboard */1),
                                     children: "Dashboard",
                                     style: {
                                       marginLeft: "24px"
                                     }
                                   }),
                               JsxRuntime.jsx(Playground_react$Link, {
-                                    href: href$1(/* SiteExplorer */2),
+                                    href: href(/* SiteExplorer */2),
                                     children: "Site Explorer",
                                     style: {
                                       marginLeft: "24px"
@@ -216,9 +262,7 @@ function Playground_react$App(Props) {
                       }
                     }),
                 JsxRuntime.jsx("main", {
-                      children: typeof match === "number" ? JsxRuntime.jsx("div", {
-                              children: "Root_router Not Found"
-                            }) : handle$1(match._0)
+                      children: JsxRuntime.jsx(Playground_react$Root, {})
                     })
               ]
             });
@@ -241,11 +285,14 @@ if (node == null) {
 var node$1 = (node == null) ? undefined : Caml_option.some(node);
 
 export {
-  Dashboard_router ,
-  Root_router ,
-  Dashboard_page ,
-  Client$1 as Client,
+  usePathname ,
   Link ,
+  Root_router ,
+  Dashboard_router ,
+  Dashboard_home ,
+  Dashboard ,
+  Root ,
+  Client$1 as Client,
   App ,
   node$1 as node,
 }

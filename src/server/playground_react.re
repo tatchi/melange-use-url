@@ -1,115 +1,12 @@
 type route('v) =
   | Route(Routes.path('a, 'v), 'a): route('v);
 
-module Dashboard_router = {
-  let home = () => Routes.(nil);
-  let dashboard_id = () => Routes.(int /? nil);
-
-  type t =
-    // | Home
-    | Dashboard_id({id: int});
-
-  let router =
-    [
-      // Routes.(home() @--> Home),
-      Routes.(dashboard_id() @--> (id => Dashboard_id({id: id}))),
-    ]
-    |> Routes.one_of;
-
-  let href = route => {
-    switch (route) {
-    // | Home => Routes.sprintf(home())
-    | Dashboard_id({id}) => Routes.sprintf(dashboard_id(), id)
-    };
+let usePathname = () => {
+  let url = ReasonReactRouter.useUrl();
+  switch (url.path) {
+  | [] => "/"
+  | path => path |> List.fold_left((acc, v) => acc ++ "/" ++ v, "")
   };
-
-  let handle = route =>
-    switch (route) {
-    // | Home => <h1> {React.string("Home")} </h1>
-    | Dashboard_id({id}) =>
-      <div>
-        {React.string("dashboard with id = " ++ string_of_int(id))}
-      </div>
-    };
-
-  [@react.component]
-  let make = (~target) => {
-    switch (Routes.match'(router, ~target)) {
-    | Routes.NoMatch =>
-      <div> {React.string(" Dashboard_router Not Found")} </div>
-    | Routes.FullMatch(route)
-    | Routes.MatchWithTrailingSlash(route) => handle(route)
-    };
-  };
-};
-
-module Root_router = {
-  let home = () => Routes.(nil);
-  let dashboard = () => Routes.(s("dashboard") /? nil);
-  let siteExplorer = () => Routes.(s("site-explorer") /? nil);
-
-  type t =
-    | Home
-    | Dashboard
-    | SiteExplorer;
-
-  let router =
-    [
-      Routes.(home() @--> Home),
-      Routes.(dashboard() @--> Dashboard),
-      Routes.(siteExplorer() @--> SiteExplorer),
-    ]
-    |> Routes.one_of;
-
-  let href = route => {
-    switch (route) {
-    | Home => Routes.sprintf(home())
-    | Dashboard => Routes.sprintf(dashboard())
-    | SiteExplorer => Routes.sprintf(siteExplorer())
-    };
-  };
-
-  let handle = route =>
-    switch (route) {
-    | Home => <h1> {React.string("Home")} </h1>
-    | Dashboard =>
-      <>
-        <h1> {React.string("Dashboard")} </h1>
-        <Dashboard_router target="" />
-      </>
-    | SiteExplorer => <h1> {React.string("SiteExplorer")} </h1>
-    };
-};
-
-module Dashboard_page = {
-  [@react.component]
-  let make = () => {
-    <>
-      <h1> {React.string("Dashboard")} </h1>
-      {{
-         [|1, 2, 3|]
-         |> Array.map(id => {
-              let idStr = string_of_int(id);
-              <div
-                key=idStr
-                // <Link href={Da}>
-                //   {("Dashboard " ++ idStr)->React.string}
-                // </Link>
-              />;
-            });
-       }
-       ->React.array}
-    </>;
-  };
-};
-
-module Client = {
-  type root;
-
-  [@mel.send] external render: (root, React.element) => unit = "render";
-
-  [@mel.module "react-dom/client"]
-  external createRoot: Dom.element => root = "createRoot";
 };
 
 module Link = {
@@ -127,15 +24,135 @@ module Link = {
   };
 };
 
+module Root_router = {
+  let home = () => Routes.(nil);
+  let dashboard = () => Routes.(s("dashboard") /? wildcard);
+  let siteExplorer = () => Routes.(s("site-explorer") /? nil);
+
+  type t =
+    | Home
+    | Dashboard
+    | SiteExplorer;
+
+  let router =
+    [
+      Routes.(home() @--> Home),
+      Routes.(dashboard() @--> (_ => Dashboard)),
+      Routes.(siteExplorer() @--> SiteExplorer),
+    ]
+    |> Routes.one_of;
+
+  let href = route => {
+    switch (route) {
+    | Home => Routes.sprintf(home())
+    | Dashboard => Routes.sprintf(dashboard(), Routes.Parts.of_parts(""))
+    | SiteExplorer => Routes.sprintf(siteExplorer())
+    };
+  };
+};
+
+module Dashboard_router = {
+  let home = () => Routes.(nil);
+  let dashboard_id = () => Routes.(int /? nil);
+
+  type t =
+    | Home
+    | Dashboard_id({id: int});
+
+  let router =
+    [
+      Routes.(home() @--> Home),
+      Routes.(dashboard_id() @--> (id => Dashboard_id({id: id}))),
+    ]
+    |> Routes.one_of;
+
+  let href = route => {
+    let prefix = Root_router.href(Dashboard);
+    switch (route) {
+    | Home => prefix ++ Routes.sprintf(home())
+    | Dashboard_id({id}) => prefix ++ Routes.sprintf(dashboard_id(), id)
+    };
+  };
+};
+
+module Dashboard_home = {
+  [@react.component]
+  let make = () => {
+    <>
+      {{
+         [|1, 2, 3|]
+         |> Array.map(id => {
+              let idStr = string_of_int(id);
+              <div key=idStr>
+                <Link href={Dashboard_router.href(Dashboard_id({id: id}))}>
+                  {("Dashboard " ++ idStr)->React.string}
+                </Link>
+              </div>;
+            });
+       }
+       ->React.array}
+    </>;
+  };
+};
+
+module Dashboard = {
+  let handle = route =>
+    switch (route) {
+    | Dashboard_router.Home => <Dashboard_home />
+    | Dashboard_id({id}) =>
+      <div>
+        {React.string("dashboard with id = " ++ string_of_int(id))}
+      </div>
+    };
+
+  [@react.component]
+  let make = (~target) => {
+    switch (Routes.match'(Dashboard_router.router, ~target)) {
+    | Routes.NoMatch =>
+      <div> {React.string(" Dashboard_router Not Found")} </div>
+    | Routes.FullMatch(route)
+    | Routes.MatchWithTrailingSlash(route) => handle(route)
+    };
+  };
+};
+
+module Root = {
+  let handle = (route, ~rest) => {
+    switch (route) {
+    | Root_router.Home => <h1> {React.string("Home")} </h1>
+    | Dashboard =>
+      <> <h1> {React.string("Dashboard")} </h1> <Dashboard target=rest /> </>
+    | SiteExplorer => <h1> {React.string("SiteExplorer")} </h1>
+    };
+  };
+
+  [@react.component]
+  let make = () => {
+    let pathname = usePathname();
+    switch (Routes.match'(Root_router.router, ~target=pathname)) {
+    | Routes.NoMatch => <div> {React.string("Root_router Not Found")} </div>
+    | Routes.FullMatch(route)
+    | Routes.MatchWithTrailingSlash(route) =>
+      let matchedHref = Root_router.href(route);
+      let rest =
+        Js.String.replace(~search=matchedHref, ~replacement="", pathname);
+      handle(route, ~rest);
+    };
+  };
+};
+
+module Client = {
+  type root;
+
+  [@mel.send] external render: (root, React.element) => unit = "render";
+
+  [@mel.module "react-dom/client"]
+  external createRoot: Dom.element => root = "createRoot";
+};
+
 module App = {
   [@react.component]
   let make = () => {
-    let url = ReasonReactRouter.useUrl();
-    let pathname =
-      switch (url.path) {
-      | [] => "/"
-      | path => path |> List.fold_left((acc, v) => acc ++ "/" ++ v, "")
-      };
     <header>
       <div style={ReactDOM.Style.make(~padding="4px 5px", ())}>
         <nav
@@ -157,14 +174,7 @@ module App = {
           </Link>
         </nav>
       </div>
-      <main>
-        {switch (Routes.match'(Root_router.router, ~target=pathname)) {
-         | Routes.NoMatch =>
-           <div> {React.string("Root_router Not Found")} </div>
-         | Routes.FullMatch(route)
-         | Routes.MatchWithTrailingSlash(route) => Root_router.handle(route)
-         }}
-      </main>
+      <main> <Root /> </main>
     </header>;
   };
 };
