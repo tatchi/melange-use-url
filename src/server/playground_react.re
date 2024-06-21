@@ -26,18 +26,18 @@ module Link = {
 
 module Root_router = {
   let home = () => Routes.(nil);
-  let dashboard = () => Routes.(s("dashboard") /? wildcard);
+  let projects = () => Routes.(s("projects") /? wildcard);
   let siteExplorer = () => Routes.(s("site-explorer") /? nil);
 
   type t =
     | Home
-    | Dashboard
+    | Projects
     | SiteExplorer;
 
   let router =
     [
       Routes.(home() @--> Home),
-      Routes.(dashboard() @--> (_ => Dashboard)),
+      Routes.(projects() @--> (_ => Projects)),
       Routes.(siteExplorer() @--> SiteExplorer),
     ]
     |> Routes.one_of;
@@ -45,37 +45,37 @@ module Root_router = {
   let href = route => {
     switch (route) {
     | Home => Routes.sprintf(home())
-    | Dashboard => Routes.sprintf(dashboard(), Routes.Parts.of_parts(""))
+    | Projects => Routes.sprintf(projects(), Routes.Parts.of_parts(""))
     | SiteExplorer => Routes.sprintf(siteExplorer())
     };
   };
 };
 
-module Dashboard_router = {
+module Projects_router = {
   let home = () => Routes.(nil);
-  let dashboard_id = () => Routes.(int /? nil);
+  let project_id = () => Routes.(int /? nil);
 
   type t =
     | Home
-    | Dashboard_id({id: int});
+    | Project_id({id: int});
 
   let router =
     [
       Routes.(home() @--> Home),
-      Routes.(dashboard_id() @--> (id => Dashboard_id({id: id}))),
+      Routes.(project_id() @--> (id => Project_id({id: id}))),
     ]
     |> Routes.one_of;
 
   let href = route => {
-    let prefix = Root_router.href(Dashboard);
+    let prefix = Root_router.href(Projects);
     switch (route) {
     | Home => prefix ++ Routes.sprintf(home())
-    | Dashboard_id({id}) => prefix ++ Routes.sprintf(dashboard_id(), id)
+    | Project_id({id}) => prefix ++ Routes.sprintf(project_id(), id)
     };
   };
 };
 
-module Dashboard_home = {
+module Projects_home = {
   [@react.component]
   let make = () => {
     <>
@@ -84,8 +84,8 @@ module Dashboard_home = {
          |> Array.map(id => {
               let idStr = string_of_int(id);
               <div key=idStr>
-                <Link href={Dashboard_router.href(Dashboard_id({id: id}))}>
-                  {("Dashboard " ++ idStr)->React.string}
+                <Link href={Projects_router.href(Project_id({id: id}))}>
+                  {("Projects " ++ idStr)->React.string}
                 </Link>
               </div>;
             });
@@ -95,21 +95,19 @@ module Dashboard_home = {
   };
 };
 
-module Dashboard = {
+module Projects = {
   let handle = route =>
     switch (route) {
-    | Dashboard_router.Home => <Dashboard_home />
-    | Dashboard_id({id}) =>
-      <div>
-        {React.string("dashboard with id = " ++ string_of_int(id))}
-      </div>
+    | Projects_router.Home => <Projects_home />
+    | Project_id({id}) =>
+      <div> {React.string("projects with id = " ++ string_of_int(id))} </div>
     };
 
   [@react.component]
   let make = (~target) => {
-    switch (Routes.match'(Dashboard_router.router, ~target)) {
+    switch (Routes.match'(Projects_router.router, ~target)) {
     | Routes.NoMatch =>
-      <div> {React.string(" Dashboard_router Not Found")} </div>
+      <div> {React.string(" Project_router Not Found")} </div>
     | Routes.FullMatch(route)
     | Routes.MatchWithTrailingSlash(route) => handle(route)
     };
@@ -120,8 +118,8 @@ module Root = {
   let handle = (route, ~rest) => {
     switch (route) {
     | Root_router.Home => <h1> {React.string("Home")} </h1>
-    | Dashboard =>
-      <> <h1> {React.string("Dashboard")} </h1> <Dashboard target=rest /> </>
+    | Projects =>
+      <> <h1> {React.string("Projects")} </h1> <Projects target=rest /> </>
     | SiteExplorer => <h1> {React.string("SiteExplorer")} </h1>
     };
   };
@@ -163,9 +161,9 @@ module App = {
           )}>
           <Link href={Root_router.href(Home)}> "Home"->React.string </Link>
           <Link
-            href={Root_router.href(Dashboard)}
+            href={Root_router.href(Projects)}
             style={ReactDOM.Style.make(~marginLeft="24px", ())}>
-            "Dashboard"->React.string
+            "Projects"->React.string
           </Link>
           <Link
             href={Root_router.href(SiteExplorer)}

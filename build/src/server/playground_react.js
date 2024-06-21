@@ -48,9 +48,9 @@ function home(param) {
   return Routes.nil;
 }
 
-function dashboard(param) {
+function projects(param) {
   return Routes.$slash$question((function (param) {
-                return Routes.s("dashboard", param);
+                return Routes.s("projects", param);
               }), Routes.wildcard);
 }
 
@@ -64,9 +64,9 @@ var router = Routes.one_of({
       hd: Routes.$at$neg$neg$great(Routes.nil, /* Home */0),
       tl: {
         hd: Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
-                    return Routes.s("dashboard", param);
+                    return Routes.s("projects", param);
                   }), Routes.wildcard), (function (param) {
-                return /* Dashboard */1;
+                return /* Projects */1;
               })),
         tl: {
           hd: Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
@@ -81,9 +81,9 @@ function href(route) {
   switch (route) {
     case /* Home */0 :
         return Routes.sprintf(Routes.nil);
-    case /* Dashboard */1 :
+    case /* Projects */1 :
         return Curry._1(Routes.sprintf(Routes.$slash$question((function (param) {
-                              return Routes.s("dashboard", param);
+                              return Routes.s("projects", param);
                             }), Routes.wildcard)), Routes.Parts.of_parts(""));
     case /* SiteExplorer */2 :
         return Routes.sprintf(Routes.$slash$question((function (param) {
@@ -95,7 +95,7 @@ function href(route) {
 
 var Root_router = {
   home: home,
-  dashboard: dashboard,
+  projects: projects,
   siteExplorer: siteExplorer,
   router: router,
   href: href
@@ -105,7 +105,7 @@ function home$1(param) {
   return Routes.nil;
 }
 
-function dashboard_id(param) {
+function project_id(param) {
   return Routes.$slash$question(Routes.$$int, Routes.nil);
 }
 
@@ -113,7 +113,7 @@ var router$1 = Routes.one_of({
       hd: Routes.$at$neg$neg$great(Routes.nil, /* Home */0),
       tl: {
         hd: Routes.$at$neg$neg$great(Routes.$slash$question(Routes.$$int, Routes.nil), (function (id) {
-                return /* Dashboard_id */{
+                return /* Project_id */{
                         id: id
                       };
               })),
@@ -122,7 +122,7 @@ var router$1 = Routes.one_of({
     });
 
 function href$1(route) {
-  var prefix = href(/* Dashboard */1);
+  var prefix = href(/* Projects */1);
   if (route) {
     return prefix + Curry._1(Routes.sprintf(Routes.$slash$question(Routes.$$int, Routes.nil)), route.id);
   } else {
@@ -130,22 +130,22 @@ function href$1(route) {
   }
 }
 
-var Dashboard_router = {
+var Projects_router = {
   home: home$1,
-  dashboard_id: dashboard_id,
+  project_id: project_id,
   router: router$1,
   href: href$1
 };
 
-function Playground_react$Dashboard_home(Props) {
+function Playground_react$Projects_home(Props) {
   return React.createElement(JsxRuntime.Fragment, undefined, Stdlib__Array.map((function (id) {
                     var idStr = String(id);
                     return JsxRuntime.jsx("div", {
                                 children: JsxRuntime.jsx(Playground_react$Link, {
-                                      href: href$1(/* Dashboard_id */{
+                                      href: href$1(/* Project_id */{
                                             id: id
                                           }),
-                                      children: "Dashboard " + idStr
+                                      children: "Projects " + idStr
                                     })
                               }, idStr);
                   }), [
@@ -155,35 +155,35 @@ function Playground_react$Dashboard_home(Props) {
                 ]));
 }
 
-var Dashboard_home = {
-  make: Playground_react$Dashboard_home
+var Projects_home = {
+  make: Playground_react$Projects_home
 };
 
 function handle(route) {
   if (route) {
     return JsxRuntime.jsx("div", {
-                children: "dashboard with id = " + String(route.id)
+                children: "projects with id = " + String(route.id)
               });
   } else {
-    return JsxRuntime.jsx(Playground_react$Dashboard_home, {});
+    return JsxRuntime.jsx(Playground_react$Projects_home, {});
   }
 }
 
-function Playground_react$Dashboard(Props) {
+function Playground_react$Projects(Props) {
   var target = Props.target;
   var match = Routes.match$p(router$1, target);
   if (typeof match === "number") {
     return JsxRuntime.jsx("div", {
-                children: " Dashboard_router Not Found"
+                children: " Project_router Not Found"
               });
   } else {
     return handle(match._0);
   }
 }
 
-var Dashboard = {
+var Projects = {
   handle: handle,
-  make: Playground_react$Dashboard
+  make: Playground_react$Projects
 };
 
 function handle$1(route, rest) {
@@ -192,10 +192,10 @@ function handle$1(route, rest) {
         return JsxRuntime.jsx("h1", {
                     children: "Home"
                   });
-    case /* Dashboard */1 :
+    case /* Projects */1 :
         return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h1", {
-                        children: "Dashboard"
-                      }), JsxRuntime.jsx(Playground_react$Dashboard, {
+                        children: "Projects"
+                      }), JsxRuntime.jsx(Playground_react$Projects, {
                         target: rest
                       }));
     case /* SiteExplorer */2 :
@@ -238,8 +238,8 @@ function Playground_react$App(Props) {
                                     children: "Home"
                                   }),
                               JsxRuntime.jsx(Playground_react$Link, {
-                                    href: href(/* Dashboard */1),
-                                    children: "Dashboard",
+                                    href: href(/* Projects */1),
+                                    children: "Projects",
                                     style: {
                                       marginLeft: "24px"
                                     }
@@ -288,9 +288,9 @@ export {
   usePathname ,
   Link ,
   Root_router ,
-  Dashboard_router ,
-  Dashboard_home ,
-  Dashboard ,
+  Projects_router ,
+  Projects_home ,
+  Projects ,
   Root ,
   Client$1 as Client,
   App ,
