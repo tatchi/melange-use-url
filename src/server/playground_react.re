@@ -25,14 +25,15 @@ module Link = {
 };
 
 module Root_router = {
-  let home = () => Routes.(nil);
-  let projects = () => Routes.(s("projects") /? wildcard);
-  let siteExplorer = () => Routes.(s("site-explorer") /? nil);
-
   type t =
     | Home
     | Projects
     | SiteExplorer;
+
+  // Generated begin
+  let home = () => Routes.(nil);
+  let projects = () => Routes.(s("projects") /? wildcard);
+  let siteExplorer = () => Routes.(s("site-explorer") /? nil);
 
   let router =
     [
@@ -49,15 +50,17 @@ module Root_router = {
     | SiteExplorer => Routes.sprintf(siteExplorer())
     };
   };
+  // Generated end
 };
 
 module Projects_router = {
-  let home = () => Routes.(nil);
-  let project_id = () => Routes.(int /? nil);
-
   type t =
     | Home
     | Project_id({id: int});
+
+  // Generated begin
+  let home = () => Routes.(nil);
+  let project_id = () => Routes.(int /? nil);
 
   let router =
     [
@@ -73,6 +76,7 @@ module Projects_router = {
     | Project_id({id}) => prefix ++ Routes.sprintf(project_id(), id)
     };
   };
+  // Generated end
 };
 
 module Projects_home = {
