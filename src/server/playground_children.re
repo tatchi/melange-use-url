@@ -125,7 +125,8 @@ module Projects_index = {
 };
 
 module Projects = {
-  let handle = route => {
+  [@react.component]
+  let make = (~route) => {
     switch (route) {
     | Projects_pages.Index => <Projects_index />
     | Project_id({id}) =>
@@ -146,20 +147,6 @@ module Projects = {
       </>
     };
   };
-
-  [@react.component]
-  let make = (~target) => {
-    switch (Routes.match'(Projects_pages.router, ~target)) {
-    | Routes.NoMatch =>
-      <div> {React.string(" Project_pages Not Found")} </div>
-    | Routes.FullMatch(route)
-    | Routes.MatchWithTrailingSlash(route) =>
-      // let matchedHref = Projects_pages.href(route);
-      // let rest =
-      //   Js.String.replace(~search=matchedHref, ~replacement="", pathname);
-      handle(route)
-    };
-  };
 };
 
 module Root = {
@@ -170,7 +157,7 @@ module Root = {
       let children =
         switch (children) {
         | None => React.null
-        | Some(children) => Projects.handle(children)
+        | Some(route) => <Projects route />
         };
 
       <> <h1> {React.string("Projects")} </h1> children </>;

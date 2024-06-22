@@ -170,7 +170,8 @@ var Projects_index = {
   make: Playground_children$Projects_index
 };
 
-function handle(route) {
+function Playground_children$Projects(Props) {
+  var route = Props.route;
   if (route) {
     return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h2", {
                     children: "Projects with id = " + String(route.id)
@@ -180,24 +181,11 @@ function handle(route) {
   }
 }
 
-function Playground_children$Projects(Props) {
-  var target = Props.target;
-  var match = Routes.match$p(router, target);
-  if (typeof match === "number") {
-    return JsxRuntime.jsx("div", {
-                children: " Project_pages Not Found"
-              });
-  } else {
-    return handle(match._0);
-  }
-}
-
 var Projects = {
-  handle: handle,
   make: Playground_children$Projects
 };
 
-function handle$1(route) {
+function handle(route) {
   if (typeof route === "number") {
     if (route) {
       return JsxRuntime.jsx("h1", {
@@ -210,7 +198,9 @@ function handle$1(route) {
     }
   }
   var children = route.children;
-  var children$1 = children !== undefined ? handle(children) : null;
+  var children$1 = children !== undefined ? JsxRuntime.jsx(Playground_children$Projects, {
+          route: children
+        }) : null;
   return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h1", {
                   children: "Projects"
                 }), children$1);
@@ -224,12 +214,12 @@ function Playground_children$Root(Props) {
                 children: "Root_pages Not Found"
               });
   } else {
-    return handle$1(match._0);
+    return handle(match._0);
   }
 }
 
 var Root = {
-  handle: handle$1,
+  handle: handle,
   make: Playground_children$Root
 };
 
