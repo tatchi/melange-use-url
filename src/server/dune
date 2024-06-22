@@ -40,20 +40,6 @@
  (preprocess
   (pps ppx_deriving_router.dream lwt_ppx ppx_deriving_json.native)))
 
-; (executable
-;  (name nested2)
-;  (modules nested2)
-;  (libraries
-;   dream
-;   lwt
-;   lwt.unix
-;   routes
-;   ppx_deriving_router.runtime_lib
-;   ppx_deriving_json.native_runtime
-;   yojson)
-;  (preprocess
-;   (pps ppx_deriving_router.dream lwt_ppx ppx_deriving_json.native)))
-
 (executable
  (name playground)
  (modules playground)
@@ -64,6 +50,14 @@
 (library
  (name playground_react)
  (modules playground_react)
+ (modes melange)
+ (libraries reason-react melange.belt melange.dom routes_browser)
+ (preprocess
+  (pps melange.ppx reason-react-ppx)))
+
+(library
+ (name playground_children)
+ (modules playground_children)
  (modes melange)
  (libraries reason-react melange.belt melange.dom routes_browser)
  (preprocess

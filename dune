@@ -7,6 +7,10 @@
 (melange.emit
  (target build)
  (alias app)
- (libraries react_app playground_react playground_react_multi)
+ (libraries
+  react_app
+  playground_react
+  playground_react_multi
+  playground_children)
  (promote (until-clean))
  (module_systems es6))
