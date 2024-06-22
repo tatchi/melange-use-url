@@ -27,6 +27,34 @@
   (pps ppx_deriving_router.dream lwt_ppx ppx_deriving_json.native)))
 
 (executable
+ (name nested)
+ (modules nested)
+ (libraries
+  dream
+  lwt
+  lwt.unix
+  routes
+  ppx_deriving_router.runtime_lib
+  ppx_deriving_json.native_runtime
+  yojson)
+ (preprocess
+  (pps ppx_deriving_router.dream lwt_ppx ppx_deriving_json.native)))
+
+; (executable
+;  (name nested2)
+;  (modules nested2)
+;  (libraries
+;   dream
+;   lwt
+;   lwt.unix
+;   routes
+;   ppx_deriving_router.runtime_lib
+;   ppx_deriving_json.native_runtime
+;   yojson)
+;  (preprocess
+;   (pps ppx_deriving_router.dream lwt_ppx ppx_deriving_json.native)))
+
+(executable
  (name playground)
  (modules playground)
  (libraries dream lwt lwt.unix routes yojson)

@@ -79,6 +79,47 @@ module Projects_router = {
   // Generated end
 };
 
+module Project_detail_router = {
+  type t =
+    | Tasks
+    | Milestones;
+
+  // Generated begin
+  let tasks = () => Routes.(s("tasks") /? nil);
+  let milestones = () => Routes.(s("milestones") /? nil);
+
+  let router =
+    [Routes.(tasks() @--> Tasks), Routes.(milestones() @--> Milestones)]
+    |> Routes.one_of;
+
+  let href = (id, route) => {
+    let prefix = Projects_router.href(Project_id({id: id}));
+    switch (route) {
+    | Tasks => prefix ++ Routes.sprintf(tasks())
+    | Milestones => prefix ++ Routes.sprintf(milestones())
+    };
+  };
+  // Generated end
+};
+
+module Project_detail = {
+  let handle = route =>
+    switch (route) {
+    | Project_detail_router.Tasks => <div> {React.string("Tasks")} </div>
+    | Milestones => <div> {React.string("Milestones")} </div>
+    };
+
+  [@react.component]
+  let make = (~target) => {
+    switch (Routes.match'(Project_detail_router.router, ~target)) {
+    | Routes.NoMatch =>
+      <div> {React.string(" Project_detail Not Found")} </div>
+    | Routes.FullMatch(route)
+    | Routes.MatchWithTrailingSlash(route) => handle(route)
+    };
+  };
+};
+
 module Projects_home = {
   [@react.component]
   let make = () => {
@@ -100,20 +141,40 @@ module Projects_home = {
 };
 
 module Projects = {
-  let handle = route =>
+  let handle = (route, ~rest) => {
     switch (route) {
     | Projects_router.Home => <Projects_home />
     | Project_id({id}) =>
-      <div> {React.string("projects with id = " ++ string_of_int(id))} </div>
+      <>
+        <h2> {React.string("Projects with id = " ++ string_of_int(id))} </h2>
+        <div>
+          <Link href={Project_detail_router.href(id, Tasks)}>
+            {React.string("Tasks")}
+          </Link>
+        </div>
+        <Link href={Project_detail_router.href(id, Milestones)}>
+          {React.string("Milestones")}
+        </Link>
+        {switch (rest) {
+         | "" => React.null
+         | rest => <Project_detail target=rest />
+         }}
+      </>
     };
+  };
 
   [@react.component]
   let make = (~target) => {
+    let pathname = usePathname();
     switch (Routes.match'(Projects_router.router, ~target)) {
     | Routes.NoMatch =>
       <div> {React.string(" Project_router Not Found")} </div>
     | Routes.FullMatch(route)
-    | Routes.MatchWithTrailingSlash(route) => handle(route)
+    | Routes.MatchWithTrailingSlash(route) =>
+      let matchedHref = Projects_router.href(route);
+      let rest =
+        Js.String.replace(~search=matchedHref, ~replacement="", pathname);
+      handle(route, ~rest);
     };
   };
 };

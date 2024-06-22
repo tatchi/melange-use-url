@@ -137,6 +137,81 @@ var Projects_router = {
   href: href$1
 };
 
+function tasks(param) {
+  return Routes.$slash$question((function (param) {
+                return Routes.s("tasks", param);
+              }), Routes.nil);
+}
+
+function milestones(param) {
+  return Routes.$slash$question((function (param) {
+                return Routes.s("milestones", param);
+              }), Routes.nil);
+}
+
+var router$2 = Routes.one_of({
+      hd: Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
+                  return Routes.s("tasks", param);
+                }), Routes.nil), /* Tasks */0),
+      tl: {
+        hd: Routes.$at$neg$neg$great(Routes.$slash$question((function (param) {
+                    return Routes.s("milestones", param);
+                  }), Routes.nil), /* Milestones */1),
+        tl: /* [] */0
+      }
+    });
+
+function href$2(id, route) {
+  var prefix = href$1(/* Project_id */{
+        id: id
+      });
+  if (route) {
+    return prefix + Routes.sprintf(Routes.$slash$question((function (param) {
+                      return Routes.s("milestones", param);
+                    }), Routes.nil));
+  } else {
+    return prefix + Routes.sprintf(Routes.$slash$question((function (param) {
+                      return Routes.s("tasks", param);
+                    }), Routes.nil));
+  }
+}
+
+var Project_detail_router = {
+  tasks: tasks,
+  milestones: milestones,
+  router: router$2,
+  href: href$2
+};
+
+function handle(route) {
+  if (route) {
+    return JsxRuntime.jsx("div", {
+                children: "Milestones"
+              });
+  } else {
+    return JsxRuntime.jsx("div", {
+                children: "Tasks"
+              });
+  }
+}
+
+function Playground_react$Project_detail(Props) {
+  var target = Props.target;
+  var match = Routes.match$p(router$2, target);
+  if (typeof match === "number") {
+    return JsxRuntime.jsx("div", {
+                children: " Project_detail Not Found"
+              });
+  } else {
+    return handle(match._0);
+  }
+}
+
+var Project_detail = {
+  handle: handle,
+  make: Playground_react$Project_detail
+};
+
 function Playground_react$Projects_home(Props) {
   return React.createElement(JsxRuntime.Fragment, undefined, Stdlib__Array.map((function (id) {
                     var idStr = String(id);
@@ -159,34 +234,48 @@ var Projects_home = {
   make: Playground_react$Projects_home
 };
 
-function handle(route) {
-  if (route) {
-    return JsxRuntime.jsx("div", {
-                children: "projects with id = " + String(route.id)
-              });
-  } else {
+function handle$1(route, rest) {
+  if (!route) {
     return JsxRuntime.jsx(Playground_react$Projects_home, {});
   }
+  var id = route.id;
+  var tmp = rest === "" ? null : JsxRuntime.jsx(Playground_react$Project_detail, {
+          target: rest
+        });
+  return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h2", {
+                  children: "Projects with id = " + String(id)
+                }), JsxRuntime.jsx("div", {
+                  children: JsxRuntime.jsx(Playground_react$Link, {
+                        href: href$2(id, /* Tasks */0),
+                        children: "Tasks"
+                      })
+                }), JsxRuntime.jsx(Playground_react$Link, {
+                  href: href$2(id, /* Milestones */1),
+                  children: "Milestones"
+                }), tmp);
 }
 
 function Playground_react$Projects(Props) {
   var target = Props.target;
+  var pathname = usePathname(undefined);
   var match = Routes.match$p(router$1, target);
   if (typeof match === "number") {
     return JsxRuntime.jsx("div", {
                 children: " Project_router Not Found"
               });
-  } else {
-    return handle(match._0);
   }
+  var route = match._0;
+  var matchedHref = href$1(route);
+  var rest = pathname.replace(matchedHref, "");
+  return handle$1(route, rest);
 }
 
 var Projects = {
-  handle: handle,
+  handle: handle$1,
   make: Playground_react$Projects
 };
 
-function handle$1(route, rest) {
+function handle$2(route, rest) {
   switch (route) {
     case /* Home */0 :
         return JsxRuntime.jsx("h1", {
@@ -217,11 +306,11 @@ function Playground_react$Root(Props) {
   var route = match._0;
   var matchedHref = href(route);
   var rest = pathname.replace(matchedHref, "");
-  return handle$1(route, rest);
+  return handle$2(route, rest);
 }
 
 var Root = {
-  handle: handle$1,
+  handle: handle$2,
   make: Playground_react$Root
 };
 
@@ -289,6 +378,8 @@ export {
   Link ,
   Root_router ,
   Projects_router ,
+  Project_detail_router ,
+  Project_detail ,
   Projects_home ,
   Projects ,
   Root ,

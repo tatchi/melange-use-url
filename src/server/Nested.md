@@ -70,28 +70,31 @@ Maybe specify the children in the return value of the handler ? But then we don'
 
 ## Notes from call with AndreyPopp
 
-module Dashboard = {
-type t =
-| Home [@get ""]
-| Details({id: int, children: Dashboard_details.t [@children]}) [@get ":id"]
-};
-
-let handler = route => switch {
-| Details ({id}) => <Layout>{Dashboard_details.handle(id, route)}</Layout>
-| Another ({id}) => <Layout>{Dashboard_details.handle(id, route)}</Layout>
-}
+```reason
 
 module Dashboard_details = {
-type t =
-| Analytics [@GET "/analytics"]
-| Export [@GET "export"];
+  type t =
+  | Analytics [@GET "/analytics"]
+  | Export [@GET "export"];
 };
 
-let handler = (route, id) => switch {
-| Analytics => ...
+let dashboard_details_handler = (route, id) => switch {
+  | Analytics => ...
+}
+
+module Dashboard = {
+  type t =
+  | Home [@get ""]
+  | Details({id: int, children: Dashboard_details.t [@children]}) [@get ":id"]
+};
+
+let dashboard_handler = route => switch {
+  | Details ({id}) => <Layout>{dashboard_details_handler(route, id)}</Layout>
+  | Another ({id}) => <Layout>{dashboard_details_handler(route, id)}</Layout>
 }
 
 module Root = {
-type t(\_) =
-| [@prefix "/dashboard"] Dashboard(Dashboard.t): t(React.element);
+  type t(_) =
+  | [@prefix "/dashboard"] Dashboard(Dashboard.t): t(React.element);
 };
+```

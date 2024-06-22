@@ -16,6 +16,8 @@
   cookies = [];
 }]
 
+[@@@warning "-32"]
+
 open StdLabels
 
 module Pages = struct
@@ -155,39 +157,7 @@ module Pages = struct
     }
 
     let routes =
-      let path_About =
-        [
-          Ppx_deriving_router_runtime.Handle.Route
-            ( Routes.( /? ) (Routes.s "About") Routes.nil,
-              (fun (_req__008_ : Ppx_deriving_router_runtime.request) ->
-                match
-                  Ppx_deriving_router_runtime.Request.method_ _req__008_
-                with
-                | `GET ->
-                    let __url_query =
-                      Ppx_deriving_router_runtime.Request.queries _req__008_
-                    in
-                    Lwt.return
-                      (Packed
-                         ( About
-                             {
-                               active =
-                                 (match
-                                    bool_of_url_query "active" __url_query
-                                  with
-                                 | Ok v -> v
-                                 | Error err ->
-                                     raise
-                                       (Ppx_deriving_router_runtime.Handle
-                                        .Invalid_query_parameter
-                                          ("active", err)));
-                             },
-                           Ppx_deriving_router_runtime.Handle.Encode_raw ))
-                | _ ->
-                    raise Ppx_deriving_router_runtime.Handle.Method_not_allowed),
-              Stdlib.Fun.id );
-        ]
-      and path_Hello =
+      let path_Hello =
         [
           Ppx_deriving_router_runtime.Handle.Route
             ( Routes.( /? )
@@ -205,13 +175,13 @@ module Pages = struct
                         string_of_url_path x)
                       "name"))
                 Routes.nil,
-              (fun _param0 (_req__007_ : Ppx_deriving_router_runtime.request) ->
+              (fun _param0 (_req__008_ : Ppx_deriving_router_runtime.request) ->
                 match
-                  Ppx_deriving_router_runtime.Request.method_ _req__007_
+                  Ppx_deriving_router_runtime.Request.method_ _req__008_
                 with
                 | `GET ->
                     let __url_query =
-                      Ppx_deriving_router_runtime.Request.queries _req__007_
+                      Ppx_deriving_router_runtime.Request.queries _req__008_
                     in
                     Lwt.return
                       (Packed
@@ -239,13 +209,13 @@ module Pages = struct
         [
           Ppx_deriving_router_runtime.Handle.Route
             ( Routes.( /? ) (Routes.s "Echo") Routes.nil,
-              (fun (_req__006_ : Ppx_deriving_router_runtime.request) ->
+              (fun (_req__007_ : Ppx_deriving_router_runtime.request) ->
                 match
-                  Ppx_deriving_router_runtime.Request.method_ _req__006_
+                  Ppx_deriving_router_runtime.Request.method_ _req__007_
                 with
                 | `GET ->
                     let __url_query =
-                      Ppx_deriving_router_runtime.Request.queries _req__006_
+                      Ppx_deriving_router_runtime.Request.queries _req__007_
                     in
                     Lwt.return
                       (Packed
@@ -279,6 +249,25 @@ module Pages = struct
         [
           Ppx_deriving_router_runtime.Handle.Route
             ( Routes.( /? ) (Routes.s "home") Routes.nil,
+              (fun (_req__006_ : Ppx_deriving_router_runtime.request) ->
+                match
+                  Ppx_deriving_router_runtime.Request.method_ _req__006_
+                with
+                | `GET ->
+                    let __url_query =
+                      Ppx_deriving_router_runtime.Request.queries _req__006_
+                    in
+                    Lwt.return
+                      (Packed
+                         (Home, Ppx_deriving_router_runtime.Handle.Encode_raw))
+                | _ ->
+                    raise Ppx_deriving_router_runtime.Handle.Method_not_allowed),
+              Stdlib.Fun.id );
+        ]
+      and path_About =
+        [
+          Ppx_deriving_router_runtime.Handle.Route
+            ( Routes.( /? ) (Routes.s "About") Routes.nil,
               (fun (_req__005_ : Ppx_deriving_router_runtime.request) ->
                 match
                   Ppx_deriving_router_runtime.Request.method_ _req__005_
@@ -289,29 +278,42 @@ module Pages = struct
                     in
                     Lwt.return
                       (Packed
-                         (Home, Ppx_deriving_router_runtime.Handle.Encode_raw))
+                         ( About
+                             {
+                               active =
+                                 (match
+                                    bool_of_url_query "active" __url_query
+                                  with
+                                 | Ok v -> v
+                                 | Error err ->
+                                     raise
+                                       (Ppx_deriving_router_runtime.Handle
+                                        .Invalid_query_parameter
+                                          ("active", err)));
+                             },
+                           Ppx_deriving_router_runtime.Handle.Encode_raw ))
                 | _ ->
                     raise Ppx_deriving_router_runtime.Handle.Method_not_allowed),
               Stdlib.Fun.id );
         ]
       in
-      Stdlib.List.flatten [ path_Home; path_Echo; path_Hello; path_About ]
+      Stdlib.List.flatten [ path_About; path_Home; path_Echo; path_Hello ]
 
     let _ = routes
 
-    let handle =
-      let router =
-        Ppx_deriving_router_runtime.Handle.make
-          (let routes : (Dream.request -> packed Lwt.t) Routes.route list =
-             Stdlib.List.map Ppx_deriving_router_runtime.Handle.to_route routes
-           in
-           Routes.one_of routes)
-      in
-      fun ({ f } : handler) ->
-        Ppx_deriving_router_runtime.Handle.handle router
-          (fun (Packed (p, encode)) req ->
-            Lwt.bind (f p req)
-              (Ppx_deriving_router_runtime.Handle.encode encode))
+    let router =
+      Ppx_deriving_router_runtime.Handle.make
+        (let routes =
+           Stdlib.List.map Ppx_deriving_router_runtime.Handle.to_route routes
+         in
+         Routes.one_of routes)
+
+    let _ = router
+
+    let handle ({ f } : handler) =
+      Ppx_deriving_router_runtime.Handle.handle router
+        (fun (Packed (p, encode)) req ->
+          Lwt.bind (f p req) (Ppx_deriving_router_runtime.Handle.encode encode))
 
     let _ = handle
     let handle f = handle { f }
@@ -363,10 +365,6 @@ end
 
 let _hello = Pages.href (Hello { name = "corentin"; repeat = Some 2 })
 let _echo = Pages.href (Echo { test = true; nb = 4 })
-
-let () =
-  print_newline ();
-  print_endline (Pages.href (About { active = false }))
 
 module Pages_handle = struct
   let handle =
@@ -549,25 +547,6 @@ module Api = struct
                     raise Ppx_deriving_router_runtime.Handle.Method_not_allowed),
               Stdlib.Fun.id );
         ]
-      and path_Raw =
-        [
-          Ppx_deriving_router_runtime.Handle.Route
-            ( Routes.( /? ) (Routes.s "raw") Routes.nil,
-              (fun (_req__038_ : Ppx_deriving_router_runtime.request) ->
-                match
-                  Ppx_deriving_router_runtime.Request.method_ _req__038_
-                with
-                | `GET ->
-                    let __url_query =
-                      Ppx_deriving_router_runtime.Request.queries _req__038_
-                    in
-                    Lwt.return
-                      (Packed
-                         (Raw, Ppx_deriving_router_runtime.Handle.Encode_raw))
-                | _ ->
-                    raise Ppx_deriving_router_runtime.Handle.Method_not_allowed),
-              Stdlib.Fun.id );
-        ]
       and path_Get_user =
         [
           Ppx_deriving_router_runtime.Handle.Route
@@ -583,13 +562,13 @@ module Api = struct
                      int_of_url_path x)
                    "id")
                 Routes.nil,
-              (fun _param0 (_req__037_ : Ppx_deriving_router_runtime.request) ->
+              (fun _param0 (_req__038_ : Ppx_deriving_router_runtime.request) ->
                 match
-                  Ppx_deriving_router_runtime.Request.method_ _req__037_
+                  Ppx_deriving_router_runtime.Request.method_ _req__038_
                 with
                 | `GET ->
                     let __url_query =
-                      Ppx_deriving_router_runtime.Request.queries _req__037_
+                      Ppx_deriving_router_runtime.Request.queries _req__038_
                     in
                     Lwt.return
                       (Packed
@@ -613,24 +592,43 @@ module Api = struct
                     raise Ppx_deriving_router_runtime.Handle.Method_not_allowed),
               Stdlib.Fun.id );
         ]
+      and path_Raw =
+        [
+          Ppx_deriving_router_runtime.Handle.Route
+            ( Routes.( /? ) (Routes.s "raw") Routes.nil,
+              (fun (_req__037_ : Ppx_deriving_router_runtime.request) ->
+                match
+                  Ppx_deriving_router_runtime.Request.method_ _req__037_
+                with
+                | `GET ->
+                    let __url_query =
+                      Ppx_deriving_router_runtime.Request.queries _req__037_
+                    in
+                    Lwt.return
+                      (Packed
+                         (Raw, Ppx_deriving_router_runtime.Handle.Encode_raw))
+                | _ ->
+                    raise Ppx_deriving_router_runtime.Handle.Method_not_allowed),
+              Stdlib.Fun.id );
+        ]
       in
-      Stdlib.List.flatten [ path_Get_user; path_Raw; path_Create_user ]
+      Stdlib.List.flatten [ path_Raw; path_Get_user; path_Create_user ]
 
     let _ = routes
 
-    let handle =
-      let router =
-        Ppx_deriving_router_runtime.Handle.make
-          (let routes =
-             Stdlib.List.map Ppx_deriving_router_runtime.Handle.to_route routes
-           in
-           Routes.one_of routes)
-      in
-      fun ({ f } : handler) ->
-        Ppx_deriving_router_runtime.Handle.handle router
-          (fun (Packed (p, encode)) req ->
-            Lwt.bind (f p req)
-              (Ppx_deriving_router_runtime.Handle.encode encode))
+    let router =
+      Ppx_deriving_router_runtime.Handle.make
+        (let routes =
+           Stdlib.List.map Ppx_deriving_router_runtime.Handle.to_route routes
+         in
+         Routes.one_of routes)
+
+    let _ = router
+
+    let handle ({ f } : handler) =
+      Ppx_deriving_router_runtime.Handle.handle router
+        (fun (Packed (p, encode)) req ->
+          Lwt.bind (f p req) (Ppx_deriving_router_runtime.Handle.encode encode))
 
     let _ = handle
     let handle = handle
@@ -685,7 +683,7 @@ module Api_handle = struct
     Api.handle { f }
 end
 
-let req = Dream.request ~method_:`GET ~target:"/About?active=false" ""
+let req = Dream.request ~method_:`GET ~target:"/Aaabout?active=false" ""
 let api_req = Dream.request ~method_:`GET ~target:(Api.href Api.List_users) ""
 
 let () =
@@ -693,11 +691,7 @@ let () =
     let open Lwt.Syntax in
     let* res = Pages_handle.handle req in
     let* body = Dream.body res in
-    Printf.printf "%s\n" body;
-    let* res = Api_handle.handle api_req in
-    let* body = Dream.body res in
-    Printf.printf "%s\n" body;
-    Printf.printf "%s\n" (Api.href (Api.Get_user { id = 4; active = true }));
+    Printf.printf "response = %s\n" body;
     Lwt.return_unit
   in
   Lwt_main.run (main ())
