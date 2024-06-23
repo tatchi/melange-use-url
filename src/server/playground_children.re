@@ -2,7 +2,7 @@ type route('v) =
   | Route(Routes.path('a, 'v), 'a): route('v);
 
 let usePathname = () => {
-  let url = ReasonReactRouter.useUrl();
+  let url = MyRouter.useUrl();
   switch (url.path) {
   | [] => "/"
   | path => path |> List.fold_left((acc, v) => acc ++ "/" ++ v, "")
@@ -124,40 +124,131 @@ module Projects_index = {
   };
 };
 
+// module Projects = {
+//   [@react.component]
+//   let make = (~route) => {
+//     switch (route) {
+//     | Projects_pages.Index => <Projects_index />
+//     | Project_id({id}) =>
+//       <>
+//         <h2> {React.string("Projects with id = " ++ string_of_int(id))} </h2>
+//       </>
+//     };
+//   };
+// };
+
+type project = {
+  id: int,
+  name: string,
+};
+
 module Projects = {
   [@react.component]
-  let make = (~route) => {
-    switch (route) {
-    | Projects_pages.Index => <Projects_index />
-    | Project_id({id}) =>
-      <>
-        <h2> {React.string("Projects with id = " ++ string_of_int(id))} </h2>
-        // <div>
-        //   <Link href={Project_detail_router.href(id, Tasks)}>
-        //     {React.string("Tasks")}
-        //   </Link>
-        // </div>
-        // <Link href={Project_detail_router.href(id, Milestones)}>
-        //   {React.string("Milestones")}
-        // </Link>
-        // {switch (rest) {
-        //  | "" => React.null
-        //  | rest => <Project_detail target=rest />
-        //  }}
-      </>
-    };
+  let make = (~projectsPromise, ~children=React.null) => {
+    let projects = React.Experimental.use(projectsPromise);
+
+    <div>
+      {Array.of_list(projects)
+       |> Array.map(project =>
+            <div key={string_of_int(project.id)}>
+              {React.string(project.name)}
+            </div>
+          )
+       |> React.array}
+      children
+    </div>;
   };
 };
 
-module Root = {
+let projectsPromise = ref(None);
+
+let projectOnePromise = ref(None);
+
+let getProjects = () => {
+  let p =
+    switch (projectsPromise^) {
+    | None =>
+      Js.Promise.make((~resolve, ~reject as _) => {
+        Js.log("fetch all projects");
+        let _ =
+          Js.Global.setTimeout(
+            ~f=
+              () => {
+                let projects = [
+                  {id: 1, name: "Project A"},
+                  {id: 2, name: "Project B"},
+                ];
+                resolve(. projects);
+              },
+            800,
+          );
+        ();
+      })
+    | Some(p) => p
+    };
+
+  projectsPromise := Some(p);
+  p;
+};
+
+let getProjectOne = () => {
+  let p =
+    switch (projectOnePromise^) {
+    | None =>
+      Js.Promise.make((~resolve, ~reject as _) => {
+        Js.log("fetch project one");
+        let _ =
+          Js.Global.setTimeout(
+            ~f=
+              () => {
+                let project = {id: 1, name: "Project A"};
+
+                resolve(. project);
+              },
+            800,
+          );
+        ();
+      })
+    | Some(p) => p
+    };
+
+  projectOnePromise := Some(p);
+  p;
+};
+
+module SingleProject = {
+  [@react.component]
+  let make = (~projectPromise) => {
+    let project = React.Experimental.use(projectPromise);
+
+    <div> {React.string("Name = " ++ project.name)} </div>;
+  };
+};
+
+let root_handler = (~target) => {
   let handle = route => {
     switch (route) {
     | Root_pages.Home => <h1> {React.string("Home")} </h1>
     | Projects({children}) =>
+      let projectsPromise = getProjects();
+
       let children =
         switch (children) {
         | None => React.null
-        | Some(route) => <Projects route />
+        | Some(route) =>
+          switch (route) {
+          | Projects_pages.Index =>
+            <React.Suspense fallback={<div> {React.string("loading")} </div>}>
+              <Projects projectsPromise />
+            </React.Suspense>
+          | Projects_pages.Project_id(_) =>
+            let projectPromise = getProjectOne();
+            <React.Suspense fallback={<div> {React.string("loading")} </div>}>
+              <Projects projectsPromise>
+                <SingleProject projectPromise />
+              </Projects>
+            </React.Suspense>;
+          }
         };
 
       <> <h1> {React.string("Projects")} </h1> children </>;
@@ -165,20 +256,42 @@ module Root = {
     };
   };
 
-  [@react.component]
-  let make = () => {
-    let pathname = usePathname();
-    switch (Routes.match'(Root_pages.router, ~target=pathname)) {
-    | Routes.NoMatch => <div> {React.string("Root_pages Not Found")} </div>
-    | Routes.FullMatch(route)
-    | Routes.MatchWithTrailingSlash(route) =>
-      // let matchedHref = Root_pages.href(route);
-      // let rest =
-      //   Js.String.replace(~search=matchedHref, ~replacement="", pathname);
-      handle(route)
-    };
+  switch (Routes.match'(Root_pages.router, ~target)) {
+  | FullMatch(t)
+  | MatchWithTrailingSlash(t) => handle(t)
+  | NoMatch => <div> {React.string("No match")} </div>
   };
 };
+
+// module Root = {
+//   let handle = route => {
+//     switch (route) {
+//     | Root_pages.Home => <h1> {React.string("Home")} </h1>
+//     | Projects({children}) =>
+//       let children =
+//         switch (children) {
+//         | None => React.null
+//         | Some(route) => <Projects route />
+//         };
+
+//       <> <h1> {React.string("Projects")} </h1> children </>;
+//     | SiteExplorer => <h1> {React.string("SiteExplorer")} </h1>
+//     };
+//   };
+
+//   [@react.component]
+//   let make = () => {
+//     let projects = React.Experimental.use(projectsPromise);
+
+//     Array.of_list(projects)
+//     |> Array.map(project =>
+//          <div key={string_of_int(project.id)}>
+//            {React.string(project.name)}
+//          </div>
+//        )
+//     |> React.array;
+//   };
+// };
 
 module Client = {
   type root;
@@ -192,29 +305,32 @@ module Client = {
 module App = {
   [@react.component]
   let make = () => {
-    <header>
-      <div style={ReactDOM.Style.make(~padding="4px 5px", ())}>
-        <nav
-          style={ReactDOM.Style.make(
-            ~display="flex",
-            ~alignItems="center",
-            (),
-          )}>
-          <Link href={Root_pages.href(Home)}> "Home"->React.string </Link>
-          <Link
-            href={Root_pages.href(Projects({children: None}))}
-            style={ReactDOM.Style.make(~marginLeft="24px", ())}>
-            "Projects"->React.string
-          </Link>
-          <Link
-            href={Root_pages.href(SiteExplorer)}
-            style={ReactDOM.Style.make(~marginLeft="24px", ())}>
-            "Site Explorer"->React.string
-          </Link>
-        </nav>
-      </div>
-      <main> <Root /> </main>
-    </header>;
+    let pathname = usePathname();
+    <>
+      <header>
+        <div style={ReactDOM.Style.make(~padding="4px 5px", ())}>
+          <nav
+            style={ReactDOM.Style.make(
+              ~display="flex",
+              ~alignItems="center",
+              (),
+            )}>
+            <Link href={Root_pages.href(Home)}> "Home"->React.string </Link>
+            <Link
+              href={Root_pages.href(Projects({children: None}))}
+              style={ReactDOM.Style.make(~marginLeft="24px", ())}>
+              "Projects"->React.string
+            </Link>
+            <Link
+              href={Root_pages.href(SiteExplorer)}
+              style={ReactDOM.Style.make(~marginLeft="24px", ())}>
+              "Site Explorer"->React.string
+            </Link>
+          </nav>
+        </div>
+      </header>
+      <main> {root_handler(~target=pathname)} </main>
+    </>;
   };
 };
 

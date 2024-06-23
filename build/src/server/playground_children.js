@@ -2,6 +2,7 @@
 
 import * as Caml_option from "melange.js/caml_option.js";
 import * as Curry from "melange.js/curry.js";
+import * as Playground_children__MyRouter from "./MyRouter.js";
 import * as ReasonReactRouter from "reason-react/ReasonReactRouter.js";
 import * as Routes from "../../lib/routes/browser/routes.js";
 import * as Stdlib__Array from "melange/array.js";
@@ -11,7 +12,7 @@ import * as Client from "react-dom/client";
 import * as JsxRuntime from "react/jsx-runtime";
 
 function usePathname(param) {
-  var url = ReasonReactRouter.useUrl(undefined, undefined);
+  var url = Playground_children__MyRouter.useUrl(undefined);
   var path = url.path;
   if (path) {
     return Stdlib__List.fold_left((function (acc, v) {
@@ -171,101 +172,182 @@ var Projects_index = {
 };
 
 function Playground_children$Projects(Props) {
-  var route = Props.route;
-  if (route) {
-    return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h2", {
-                    children: "Projects with id = " + String(route.id)
-                  }));
-  } else {
-    return JsxRuntime.jsx(Playground_children$Projects_index, {});
-  }
+  var projectsPromise = Props.projectsPromise;
+  var childrenOpt = Props.children;
+  var children = childrenOpt !== undefined ? Caml_option.valFromOption(childrenOpt) : null;
+  var projects = React.use(projectsPromise);
+  return JsxRuntime.jsxs("div", {
+              children: [
+                Stdlib__Array.map((function (project) {
+                        var Key = String(project.id);
+                        return JsxRuntime.jsx("div", {
+                                    children: project.name
+                                  }, Key);
+                      }), Stdlib__Array.of_list(projects)),
+                children
+              ]
+            });
 }
 
 var Projects = {
   make: Playground_children$Projects
 };
 
-function handle(route) {
-  if (typeof route === "number") {
-    if (route) {
-      return JsxRuntime.jsx("h1", {
-                  children: "SiteExplorer"
-                });
-    } else {
-      return JsxRuntime.jsx("h1", {
-                  children: "Home"
-                });
-    }
-  }
-  var children = route.children;
-  var children$1 = children !== undefined ? JsxRuntime.jsx(Playground_children$Projects, {
-          route: children
-        }) : null;
-  return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h1", {
-                  children: "Projects"
-                }), children$1);
+var projectsPromise = {
+  contents: undefined
+};
+
+var projectOnePromise = {
+  contents: undefined
+};
+
+function getProjects(param) {
+  var p = projectsPromise.contents;
+  var p$1 = p !== undefined ? Caml_option.valFromOption(p) : new Promise((function (resolve, param) {
+            console.log("fetch all projects");
+            setTimeout((function (param) {
+                    resolve({
+                          hd: {
+                            id: 1,
+                            name: "Project A"
+                          },
+                          tl: {
+                            hd: {
+                              id: 2,
+                              name: "Project B"
+                            },
+                            tl: /* [] */0
+                          }
+                        });
+                  }), 800);
+          }));
+  projectsPromise.contents = Caml_option.some(p$1);
+  return p$1;
 }
 
-function Playground_children$Root(Props) {
-  var pathname = usePathname(undefined);
-  var match = Routes.match$p(router$1, pathname);
+function getProjectOne(param) {
+  var p = projectOnePromise.contents;
+  var p$1 = p !== undefined ? Caml_option.valFromOption(p) : new Promise((function (resolve, param) {
+            console.log("fetch project one");
+            setTimeout((function (param) {
+                    resolve({
+                          id: 1,
+                          name: "Project A"
+                        });
+                  }), 800);
+          }));
+  projectOnePromise.contents = Caml_option.some(p$1);
+  return p$1;
+}
+
+function Playground_children$SingleProject(Props) {
+  var projectPromise = Props.projectPromise;
+  var project = React.use(projectPromise);
+  return JsxRuntime.jsx("div", {
+              children: "Name = " + project.name
+            });
+}
+
+var SingleProject = {
+  make: Playground_children$SingleProject
+};
+
+function root_handler(target) {
+  var match = Routes.match$p(router$1, target);
   if (typeof match === "number") {
     return JsxRuntime.jsx("div", {
-                children: "Root_pages Not Found"
+                children: "No match"
               });
   } else {
-    return handle(match._0);
+    var route = match._0;
+    if (typeof route === "number") {
+      if (route) {
+        return JsxRuntime.jsx("h1", {
+                    children: "SiteExplorer"
+                  });
+      } else {
+        return JsxRuntime.jsx("h1", {
+                    children: "Home"
+                  });
+      }
+    }
+    var children = route.children;
+    var projectsPromise = getProjects(undefined);
+    var children$1;
+    if (children !== undefined) {
+      if (children) {
+        var projectPromise = getProjectOne(undefined);
+        children$1 = JsxRuntime.jsx(React.Suspense, {
+              children: JsxRuntime.jsx(Playground_children$Projects, {
+                    projectsPromise: projectsPromise,
+                    children: JsxRuntime.jsx(Playground_children$SingleProject, {
+                          projectPromise: projectPromise
+                        })
+                  }),
+              fallback: JsxRuntime.jsx("div", {
+                    children: "loading"
+                  })
+            });
+      } else {
+        children$1 = JsxRuntime.jsx(React.Suspense, {
+              children: JsxRuntime.jsx(Playground_children$Projects, {
+                    projectsPromise: projectsPromise
+                  }),
+              fallback: JsxRuntime.jsx("div", {
+                    children: "loading"
+                  })
+            });
+      }
+    } else {
+      children$1 = null;
+    }
+    return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("h1", {
+                    children: "Projects"
+                  }), children$1);
   }
 }
-
-var Root = {
-  handle: handle,
-  make: Playground_children$Root
-};
 
 var Client$1 = {};
 
 function Playground_children$App(Props) {
-  return JsxRuntime.jsxs("header", {
-              children: [
-                JsxRuntime.jsx("div", {
-                      children: JsxRuntime.jsxs("nav", {
-                            children: [
-                              JsxRuntime.jsx(Playground_children$Link, {
-                                    href: href$1(/* Home */0),
-                                    children: "Home"
-                                  }),
-                              JsxRuntime.jsx(Playground_children$Link, {
-                                    href: href$1(/* Projects */{
-                                          children: undefined
-                                        }),
-                                    children: "Projects",
-                                    style: {
-                                      marginLeft: "24px"
-                                    }
-                                  }),
-                              JsxRuntime.jsx(Playground_children$Link, {
-                                    href: href$1(/* SiteExplorer */1),
-                                    children: "Site Explorer",
-                                    style: {
-                                      marginLeft: "24px"
-                                    }
-                                  })
-                            ],
-                            style: {
-                              display: "flex",
-                              alignItems: "center"
-                            }
-                          }),
-                      style: {
-                        padding: "4px 5px"
-                      }
-                    }),
-                JsxRuntime.jsx("main", {
-                      children: JsxRuntime.jsx(Playground_children$Root, {})
-                    })
-              ]
-            });
+  var pathname = usePathname(undefined);
+  return React.createElement(JsxRuntime.Fragment, undefined, JsxRuntime.jsx("header", {
+                  children: JsxRuntime.jsx("div", {
+                        children: JsxRuntime.jsxs("nav", {
+                              children: [
+                                JsxRuntime.jsx(Playground_children$Link, {
+                                      href: href$1(/* Home */0),
+                                      children: "Home"
+                                    }),
+                                JsxRuntime.jsx(Playground_children$Link, {
+                                      href: href$1(/* Projects */{
+                                            children: undefined
+                                          }),
+                                      children: "Projects",
+                                      style: {
+                                        marginLeft: "24px"
+                                      }
+                                    }),
+                                JsxRuntime.jsx(Playground_children$Link, {
+                                      href: href$1(/* SiteExplorer */1),
+                                      children: "Site Explorer",
+                                      style: {
+                                        marginLeft: "24px"
+                                      }
+                                    })
+                              ],
+                              style: {
+                                display: "flex",
+                                alignItems: "center"
+                              }
+                            }),
+                        style: {
+                          padding: "4px 5px"
+                        }
+                      })
+                }), JsxRuntime.jsx("main", {
+                  children: root_handler(pathname)
+                }));
 }
 
 var App = {
@@ -291,7 +373,12 @@ export {
   Root_pages ,
   Projects_index ,
   Projects ,
-  Root ,
+  projectsPromise ,
+  projectOnePromise ,
+  getProjects ,
+  getProjectOne ,
+  SingleProject ,
+  root_handler ,
   Client$1 as Client,
   App ,
   node$1 as node,

@@ -57,9 +57,14 @@
 
 (library
  (name playground_children)
- (modules playground_children)
+ (modules playground_children MyRouter)
  (modes melange)
- (libraries reason-react melange.belt melange.dom routes_browser)
+ (libraries
+  reason-react
+  melange.belt
+  melange.dom
+  routes_browser
+  melange-webapi)
  (preprocess
   (pps melange.ppx reason-react-ppx)))
 
